@@ -102,9 +102,8 @@ class Calibration:
 def calibrate(returns: pd.DataFrame, factors: pd.DataFrame) -> Calibration:
     """Estimate the simulation inputs from real excess returns.
 
-    Calibrating rather than inventing the error structure is the whole point:
-    the conclusion depends on how far real residuals are from the textbook
-    assumptions, so those departures have to be measured, not assumed.
+    The conclusion depends on how far real residuals sit from the textbook
+    assumptions, so those departures are measured here rather than assumed.
     """
     aligned = pd.concat([returns, factors], axis=1).dropna()
     r = aligned[returns.columns].to_numpy(dtype=float)

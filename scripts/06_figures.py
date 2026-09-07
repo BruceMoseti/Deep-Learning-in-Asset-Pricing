@@ -3,11 +3,6 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 import matplotlib
 
 matplotlib.use("Agg")
@@ -113,7 +108,7 @@ def figure_model_comparisons() -> None:
         return
     comparisons = _table("exp1_model_comparisons")
     order = [m for m in LADDER if m in set(comparisons["model"])]
-    adjacent = [(a, b) for a, b in zip(order[1:], order[:-1])]
+    adjacent = [(a, b) for a, b in zip(order[1:], order[:-1], strict=True)]
 
     best_linear = read_json("exp1_run").get("best_linear_model", "enet")
     against_linear = [
@@ -174,7 +169,10 @@ def figure_calibration_gap() -> None:
     for model in models:
         ax.annotate(
             model,
-            (accuracy.loc[model, "calibration_slope"], accuracy.loc[model, "r2_oos"] * 100.0),
+            (
+                accuracy.loc[model, "calibration_slope"],
+                accuracy.loc[model, "r2_oos"] * 100.0,
+            ),
             textcoords="offset points",
             xytext=(6, 3),
             fontsize=7.5,
@@ -195,8 +193,12 @@ def figure_cumulative_performance() -> None:
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 3.8), sharey=True)
     for name in _order(gross.columns):
-        style = {"color": HIGHLIGHT.get(name, "#bdc3c7"), "lw": 1.6 if name in HIGHLIGHT else 1.0}
-        axes[0].plot(gross.index, np.exp(np.log1p(gross[name]).cumsum()), label=name, **style)
+        style = {
+            "color": HIGHLIGHT.get(name, "#bdc3c7"),
+            "lw": 1.6 if name in HIGHLIGHT else 1.0,
+        }
+        cumulative = np.exp(np.log1p(gross[name]).cumsum())
+        axes[0].plot(gross.index, cumulative, label=name, **style)
         axes[1].plot(net.index, np.exp(np.log1p(net[name]).cumsum()), label=name, **style)
     axes[0].set_title("Gross of costs")
     axes[1].set_title("Net of 10 bps one-way")
@@ -314,7 +316,9 @@ def figure_multiple_testing() -> None:
         label=f"{n_tests} published predictors",
     )
     ax.axvline(1.96, color="black", lw=1.0, ls="--", label="uncorrected 5%: |t| = 1.96")
-    ax.axvline(3.0, color="#e67e22", lw=1.0, ls="-.", label="Harvey-Liu-Zhu hurdle: |t| = 3.0")
+    ax.axvline(
+        3.0, color="#e67e22", lw=1.0, ls="-.", label="Harvey-Liu-Zhu hurdle: |t| = 3.0"
+    )
     ax.axvline(
         bonferroni_t,
         color="#8e44ad",
@@ -356,7 +360,7 @@ def figure_test_size() -> None:
     }
 
     fig, axes = plt.subplots(1, len(shown), figsize=(12, 3.5), sharey=True)
-    for ax, model in zip(axes, shown):
+    for ax, model in zip(axes, shown, strict=True):
         block = size[(size["error_model"] == model) & (size["n_obs"] == 360)]
         block = block.sort_values("n_assets")
         for test in tests:
@@ -388,12 +392,15 @@ def figure_test_power() -> None:
     colours = {"grs": "#2c3e50", "pesaran_yamagata": "#e67e22"}
     shown = ["gaussian_independent", "empirical_wild_block"]
     titles = {
-        "gaussian_independent": "Weak cross-sectional dependence\n(Pesaran-Yamagata's assumption holds)",
+        "gaussian_independent": (
+            "Weak cross-sectional dependence\n"
+            "(Pesaran-Yamagata's assumption holds)"
+        ),
         "empirical_wild_block": "Real cross-sectional dependence\n(assumption violated)",
     }
 
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.6), sharey=True)
-    for ax, model in zip(axes, shown):
+    for ax, model in zip(axes, shown, strict=True):
         block = power[(power["error_model"] == model) & (power["n_obs"] == 360)]
         block = block.sort_values("n_assets")
         for test, colour in colours.items():
@@ -462,7 +469,7 @@ def figure_regimes() -> None:
 
     dimensions = list(dict.fromkeys(shown["dimension"]))
     fig, axes = plt.subplots(1, len(dimensions), figsize=(13, 3.4), sharey=True)
-    for ax, dimension in zip(np.atleast_1d(axes), dimensions):
+    for ax, dimension in zip(np.atleast_1d(axes), dimensions, strict=True):
         block = shown[shown["dimension"] == dimension]
         states = list(dict.fromkeys(block["state"]))
         models = _order(block["model"].unique())

@@ -65,7 +65,8 @@ def _all_numeric(fields: list[str]) -> bool:
 
 def read_french_csv(path) -> pd.DataFrame:
     """Read a French-library file into a month x portfolio frame of percents."""
-    text = open(path, "r", encoding="utf-8-sig", errors="replace").read()
+    with open(path, encoding="utf-8-sig", errors="replace") as handle:
+        text = handle.read()
     header, rows = _monthly_block(text)
 
     index = pd.PeriodIndex([r[0] for r in rows], freq="M")
@@ -113,7 +114,8 @@ def sort_ranks(column: str) -> tuple[float, float]:
     if len(tokens) != 2:
         return (np.nan, np.nan)
     buckets = [_bucket(t) for t in tokens]
-    return tuple(np.nan if b is None else (b - 1) / 4.0 for b in buckets)  # type: ignore[return-value]
+    scaled = (np.nan if b is None else (b - 1) / 4.0 for b in buckets)
+    return tuple(scaled)  # type: ignore[return-value]
 
 
 def read_factors(path, rename: dict[str, str] | None = None) -> pd.DataFrame:

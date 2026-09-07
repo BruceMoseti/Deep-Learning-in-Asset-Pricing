@@ -26,7 +26,8 @@ def dataset(cfg: Config | None = None, *, refresh: bool = False):
     else:
         from xsap.data import load_factors, load_portfolio_panel
 
-        data = rank_normalise(build_features(load_portfolio_panel(cfg), load_factors(cfg), cfg))
+        panel = load_portfolio_panel(cfg)
+        data = rank_normalise(build_features(panel, load_factors(cfg), cfg))
         data.to_parquet(_DATASET)
     return data, make_target(data, cfg.target)
 

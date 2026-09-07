@@ -62,7 +62,9 @@ def test_fully_replacing_both_legs_costs_four_units_of_turnover():
         np.concatenate([np.arange(20, dtype=float), np.arange(20, dtype=float)[::-1]]),
         index=index,
     )
-    result = backtest(flipping, pd.Series(0.0, index=index), n_quantiles=10, cost_bps=(10.0,))
+    result = backtest(
+        flipping, pd.Series(0.0, index=index), n_quantiles=10, cost_bps=(10.0,)
+    )
     assert result["turnover"].iloc[1] == pytest.approx(4.0)
 
 

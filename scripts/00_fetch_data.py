@@ -9,17 +9,12 @@ same data vintage.
 from __future__ import annotations
 
 import argparse
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pandas as pd
 
 from xsap.artifacts import save_table
 from xsap.config import Config, ensure_dirs
-from xsap.data import load_anomaly_returns, load_factors, load_portfolio_panel
-from xsap.data import sources
+from xsap.data import load_anomaly_returns, load_factors, load_portfolio_panel, sources
 
 
 def main() -> None:

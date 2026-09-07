@@ -49,8 +49,11 @@ def load_portfolio_panel(cfg: Config | None = None) -> pd.DataFrame:
         )
         long["family"] = source.key
         long["asset"] = source.key + ":" + long["portfolio"]
-        long["sort1"] = long["portfolio"].map(lambda c: ranks[c][0])
-        long["sort2"] = long["portfolio"].map(lambda c: ranks[c][1])
+        # Indexed directly rather than through a lambda: a closure here would
+        # capture ``ranks`` by reference and read whichever portfolio set the
+        # loop had reached by the time it was evaluated.
+        long["sort1"] = [ranks[c][0] for c in long["portfolio"]]
+        long["sort2"] = [ranks[c][1] for c in long["portfolio"]]
         long["is_industry"] = float(industry)
         frames.append(long.drop(columns="portfolio"))
 

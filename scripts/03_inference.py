@@ -19,11 +19,6 @@ Three separate ways for the result to fail, tested separately.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 import numpy as np
 import pandas as pd
 
@@ -46,7 +41,9 @@ def sharpe(x: np.ndarray) -> float:
     return float(x.mean() / sd * np.sqrt(12)) if sd > 0 else np.nan
 
 
-def factor_regressions(returns: pd.DataFrame, ff: pd.DataFrame, cfg: Config) -> pd.DataFrame:
+def factor_regressions(
+    returns: pd.DataFrame, ff: pd.DataFrame, cfg: Config
+) -> pd.DataFrame:
     rows = []
     for name in returns.columns:
         for label, model in (("capm", CAPM), ("ff5", FF5), ("ff6", FF6)):
@@ -130,7 +127,10 @@ def main() -> None:
     per_predictor = pd.DataFrame(records).set_index("predictor")
 
     summary_rows = {}
-    for label, column in (("raw_mean_return", "pvalue_nw"), ("ff6_alpha", "ff6_alpha_pvalue")):
+    for label, column in (
+        ("raw_mean_return", "pvalue_nw"),
+        ("ff6_alpha", "ff6_alpha_pvalue"),
+    ):
         decisions = multiple_testing_summary(
             per_predictor[column].to_numpy(), per_predictor.index
         )

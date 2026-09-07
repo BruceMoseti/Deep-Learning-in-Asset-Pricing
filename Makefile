@@ -1,15 +1,19 @@
 PYTHON ?= python3
+# Lets every target work in a fresh clone, before `make setup` has been run.
 export PYTHONPATH := $(CURDIR)/src
 
-.PHONY: all setup test data exp1 exp2 exp3 exp4 exp5 figures report clean fast
+.PHONY: all setup test lint data exp1 exp2 exp3 exp4 exp5 figures report clean fast
 
 all: data exp1 exp2 exp3 exp4 exp5 figures report
 
 setup:
-	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m pip install -e ".[dev]"
 
 test:
-	$(PYTHON) -m pytest tests/ -q
+	$(PYTHON) -m pytest -q
+
+lint:
+	ruff check src scripts tests
 
 # Experiment 0: download the pinned data and record its provenance.
 data:

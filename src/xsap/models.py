@@ -83,7 +83,10 @@ class Linear:
             ]
         if self.kind == "enet":
             return [
-                ({"alpha": a, "l1_ratio": r}, ElasticNet(alpha=a, l1_ratio=r, max_iter=20000))
+                (
+                    {"alpha": a, "l1_ratio": r},
+                    ElasticNet(alpha=a, l1_ratio=r, max_iter=20000),
+                )
                 for a in self.alphas
                 for r in self.l1_ratios
             ]

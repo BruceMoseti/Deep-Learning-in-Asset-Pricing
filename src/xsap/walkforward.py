@@ -13,9 +13,9 @@ Why expanding rather than rolling
 ---------------------------------
 The relations being estimated are weak and the monthly cross-section is noisy,
 so estimation error is the binding constraint; discarding old data to chase
-non-stationarity makes that worse.  An expanding window is the default here and
-a rolling window is reported as a robustness check, which is the only honest way
-to make the claim -- the choice is an empirical question, not a matter of taste.
+non-stationarity makes that worse.  An expanding window is the default and a
+rolling window is reported alongside it, since which one wins is an empirical
+question -- see ``results/exp5_design_robustness.csv``.
 
 Embargo
 -------
@@ -112,8 +112,7 @@ def run_walkforward(
     Returns ``(predictions, diagnostics)``.  ``predictions`` is indexed by
     ``(month, asset)`` with one column per model plus the realised target and
     excess return; ``diagnostics`` records the chosen hyper-parameters and fit
-    time for every model-year, which is what makes the run auditable after the
-    fact.
+    time for every model-year, so a completed run can be audited.
     """
     cfg = cfg or Config()
     months = pd.PeriodIndex(data.index.get_level_values("month").unique(), freq="M")
