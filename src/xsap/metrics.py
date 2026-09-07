@@ -92,6 +92,34 @@ def summarise_forecasts(
     }
 
 
+def ic_difference_test(
+    predictions_a: pd.Series,
+    predictions_b: pd.Series,
+    targets: pd.Series,
+    lags: int = 6,
+) -> dict:
+    """Paired test that two forecasts have the same mean information coefficient.
+
+    The Diebold-Mariano test compares squared error, but the portfolio only uses
+    the ranking, so the headline metric here is the information coefficient.
+    Its month-by-month difference is paired -- both models face the same
+    cross-section each month -- which removes the common component and gives a
+    far tighter test than comparing two standard errors.
+    """
+    ic_a = monthly_ic(predictions_a, targets)
+    ic_b = monthly_ic(predictions_b, targets)
+    difference = (ic_a - ic_b).dropna()
+    test = mean_tstat(difference.to_numpy(), lags=lags)
+    return {
+        "ic_a": float(ic_a.mean()),
+        "ic_b": float(ic_b.mean()),
+        "ic_difference": test.mean,
+        "tstat": test.tstat,
+        "pvalue": test.pvalue,
+        "n_months": test.n_obs,
+    }
+
+
 def diebold_mariano(
     predictions_a: pd.Series,
     predictions_b: pd.Series,

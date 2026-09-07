@@ -2,8 +2,8 @@
 |:--------------|-----------:|-----------------------------:|:---------------------|:--------------------|:------------------------|------------------:|:------------------------------|
 | single-signal |     2.0343 |                      25.0000 | True                 | False               | False                   |            2.1261 | False                         |
 | ols           |     2.4297 |                      34.4340 | True                 | False               | False                   |            1.5683 | False                         |
-| ridge         |     2.4460 |                      35.3774 | True                 | False               | False                   |            1.5846 | False                         |
-| lasso         |     1.9527 |                      23.1132 | False                | False               | False                   |            1.5815 | False                         |
-| enet          |     3.0053 |                      48.5849 | True                 | False               | True                    |            2.6477 | False                         |
-| xgboost       |     3.4390 |                      57.0755 | True                 | False               | True                    |            2.8337 | False                         |
-| neural-net    |     2.2918 |                      31.6038 | True                 | False               | False                   |            1.8066 | False                         |
+| ridge         |     2.4305 |                      34.4340 | True                 | False               | False                   |            1.5688 | False                         |
+| lasso         |     3.0957 |                      50.4717 | True                 | False               | True                    |            2.6225 | False                         |
+| enet          |     3.1594 |                      50.4717 | True                 | False               | True                    |            2.8044 | False                         |
+| xgboost       |     3.4292 |                      57.0755 | True                 | False               | True                    |            2.8340 | False                         |
+| neural-net    |     2.2532 |                      30.6604 | True                 | False               | False                   |            1.7759 | False                         |

@@ -11,7 +11,7 @@ Five experiments, each answering a question the previous one raises:
 
 | | Question | Verdict |
 | --- | --- | --- |
-| 1 | Does model flexibility buy out-of-sample accuracy? | Yes, modestly and measurably |
+| 1 | Does model flexibility buy out-of-sample accuracy? | Only through sparsity; nonlinearity adds nothing distinguishable |
 | 2 | Is that accuracy worth anything after costs? | Only for the low-turnover models |
 | 3 | Is the signal statistically real, and real *in context*? | Real on its own terms; median-strength among published predictors |
 | 4 | Do asset-pricing tests behave when there are many assets? | Not in the way usually assumed |
@@ -21,13 +21,20 @@ Five experiments, each answering a question the previous one raises:
 
 ## Headline findings
 
-**Flexibility helps, but less than the model ladder suggests.** Rank information
-coefficient rises from 0.025 for a single momentum characteristic to 0.032 for
-ridge to **0.049 for gradient boosting** (\(t = 3.6\), Newey-West) over 407
-out-of-sample months. A Diebold-Mariano test puts the boosting gain over ridge
-at \(t \approx -4.4\), so it is larger than its own standard error. The neural
-network does **not** beat boosting (IC 0.033), which is what a cross-section of
-374 assets with 26 return-based predictors should be expected to support.
+**The gain from complexity is sparsity, not nonlinearity — and that is the
+answer to the research question.** Rank information coefficient rises
+monotonically along the ladder: 0.025 for a single momentum characteristic,
+0.032 for ridge, 0.042 for lasso, **0.049 for gradient boosting**
+(\(t = 3.6\) against zero) over 407 out-of-sample months. Taken at face value
+that looks like complexity paying. It does not survive a paired test. Boosting
+beats ridge (IC gap \(+0.018\), \(t = 2.4\); Diebold-Mariano \(t = -4.4\)) but is
+**statistically indistinguishable from lasso** (gap \(+0.007\), \(t = 1.2\),
+\(p = 0.23\); on squared error \(p = 0.93\)), and the neural network is
+significantly *worse* than lasso. Ridge selects a penalty so small it is
+effectively OLS — with 26 predictors and 249,000 observations there is no
+ill-conditioning for shrinkage to fix — so what separates the ends of the ladder
+is Lasso's variable selection, not the nonlinearity layered on top. No single
+adjacent step is significant on its own.
 
 **The accuracy ranking is not the tradability ranking.** Ridge and OLS turn over
 2.3 times the book per month; they break even at about 18 basis points one-way

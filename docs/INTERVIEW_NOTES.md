@@ -107,45 +107,79 @@ that are better calibrated are exactly the ones with positive \(R^2_{OOS}\).
 Which matters for me? IC, because the portfolio uses only the ranking. But
 reporting only IC would have hidden a real miscalibration, so I report both.
 
-### "XGBoost beat the neural network. Why?"
+### "So did the nonlinear models win?" — the most important answer here
 
-The honest answer starts with sample size. Roughly 250,000 asset-months, 26
-predictors, and a signal that explains a fraction of a percent of variance.
-Gradient boosting with depth 2 to 4 fits shallow, low-order interactions, which
-is close to the amount of structure the data can actually support. A network has
-to find its own representation from the same data, and here the initialisation
-variance is large relative to the signal — which is why I ensemble over seeds,
-and why a single network would have been misleading either way.
+No, not reliably, and this is the finding I would lead with.
 
-I would not claim boosting beats networks in general. On a firm-level panel with
-hundreds of characteristics, Gu, Kelly and Xiu find networks do best. My
-cross-section is 374 portfolios with return-based predictors only, so most of
-the high-order interaction structure that would favour a network is not present
-to be found.
+The point estimates look like a clean win for complexity: rank IC of 0.025 for a
+single momentum characteristic, 0.032 for ridge, 0.042 for lasso, 0.049 for
+gradient boosting. Read that table and you would conclude nonlinearity pays.
 
-And I checked the gap is not noise: a Diebold-Mariano test on monthly squared
-error against ridge gives roughly \(t = -4.4\), so the improvement in squared
-error is larger than its own standard error.
+It does not survive a paired test. Both models see the same cross-section every
+month, so I difference their monthly ICs — the common component cancels and the
+test is far tighter than comparing two standard errors:
+
+- Boosting versus ridge: IC gap \(+0.018\), \(t = 2.4\); Diebold-Mariano on
+  squared error \(t = -4.4\). Significant.
+- Boosting versus **lasso**, the best linear model: gap \(+0.007\),
+  \(t = 1.2\), \(p = 0.23\); on squared error \(p = 0.93\). **Indistinguishable.**
+- The neural network versus lasso: significantly *worse* on squared error
+  (\(p = 0.004\)).
+
+So almost the whole apparent gain from "complexity" is the sparse
+regularisation in between, not the nonlinearity on top. Ridge selects a penalty
+so small it is effectively OLS — with 26 predictors and 249,000 observations
+there is no ill-conditioning for shrinkage to fix — whereas Lasso's variable
+selection is a real restriction that pays out of sample.
+
+And no single adjacent step in the ladder is significant on its own. Only the
+cumulative ridge-to-boosting gap clears conventional significance.
+
+The conclusion I would state: *nonlinear models improved average accuracy, but
+the improvement over the best regularised linear model was not statistically
+distinguishable, and the extra flexibility of a neural network actively hurt.
+The reliable gain came from variable selection.*
+
+### "Why did the network lose?"
+
+Sample size, and I would not generalise from it. Roughly 250,000 asset-months,
+26 predictors, and a signal explaining a fraction of a percent of variance.
+Boosting at depth 2 to 4 fits shallow, low-order interactions — about the
+structure this data supports. A network must learn its own representation from
+the same thin signal, and here initialisation variance is large relative to it,
+which is why I ensemble over seeds and why a single network would have been
+misleading in either direction.
+
+On a firm-level panel with hundreds of characteristics, Gu, Kelly and Xiu find
+networks do best. My cross-section is 374 portfolios with return-based
+predictors only, so most of the high-order interaction structure that would
+favour a network is not present to be found. That is a statement about my data,
+not about networks.
 
 ### "Which is the best model?"
 
-Depends on the question, and the ranking changes.
+Depends on the question, and the ranking changes twice.
 
-By accuracy, XGBoost (rank IC 0.049, \(t = 3.6\)). By tradability, not
-necessarily. Ridge and OLS have gross Sharpe ratios around 0.41 but turn over
-2.3 times the book per month, so they break even at about 18 basis points and go
-*negative* by 20. XGBoost breaks even around 33.
+By raw accuracy, XGBoost (rank IC 0.049). By accuracy *net of its own standard
+error*, lasso — because boosting's advantage over it is not distinguishable, and
+lasso is the simpler model. By tradability, neither: ridge and OLS have gross
+Sharpe ratios around 0.41 but turn over 2.3 times the book per month, so they
+break even at about 18 basis points and go *negative* by 20.
 
 And the single-characteristic baseline — 12-month momentum, one line of code —
 has the **highest** break-even cost of anything I fit, about 42 basis points,
-because it turns over least. Its gross Sharpe is the second lowest. That
-reversal is the most useful thing in Experiment 2, and it is the kind of result
-that only appears if you charge for turnover before ranking models.
+because it turns over least, despite having nearly the lowest gross Sharpe. That
+reversal is the most useful thing in Experiment 2, and it only appears if you
+charge for turnover before ranking models.
+
+If someone forced me to pick one for a real book, it would be lasso or elastic
+net: within noise of boosting on accuracy, better break-even cost than
+ridge, and a model whose behaviour I can fully explain.
 
 ### "How much survived transaction costs?"
 
-XGBoost: gross Sharpe 0.54, 0.46 at 5 basis points, 0.38 at 10, 0.21 at 20.
-Ridge: 0.41 gross, negative at 20.
+XGBoost: gross Sharpe 0.54, 0.37 at 10 basis points, 0.21 at 20. Ridge: 0.41
+gross, 0.19 at 10, **negative** at 20.
 
 The number I would quote is the break-even cost, because a Sharpe ratio at an
 assumed cost level buries the assumption. Break-even converts it into a question

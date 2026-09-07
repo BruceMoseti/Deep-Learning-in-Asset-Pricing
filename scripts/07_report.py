@@ -86,8 +86,18 @@ def main() -> None:
     coverage = table("data_coverage", "family")
     moments = table("factor_moments").rename(columns={"Unnamed: 0": "factor"}).set_index("factor")
 
-    best = accuracy["rank_ic"].idxmax()
+    best = run.get("best_model") or accuracy["rank_ic"].idxmax()
+    best_linear = run.get("best_linear_model", "lasso")
     baseline = "single-signal"
+
+    comparisons = table("exp1_model_comparisons", ["model", "benchmark"])
+
+    def compare(model: str, benchmark: str, column: str) -> float:
+        try:
+            return float(comparisons.loc[(model, benchmark), column])
+        except KeyError:
+            return float("nan")
+
     n_published = int(exp3_run["n_published_predictors_used"])
     bonferroni_t = float(stats.norm.isf(0.025 / n_published))
 
@@ -180,12 +190,17 @@ on an expanding window, {run['oos_months']} out-of-sample months from
 
 **Five findings.**
 
-1. Flexibility helps, and the gain is larger than its own standard error. Rank
-   IC rises from {accuracy.loc[baseline, 'rank_ic']:.4f} for a single momentum
-   characteristic to {accuracy.loc['ridge', 'rank_ic']:.4f} for ridge to
-   {accuracy.loc[best, 'rank_ic']:.4f} for {best}
-   (*t* = {accuracy.loc[best, 'rank_ic_tstat']:.2f}). The neural network reaches
-   only {accuracy.loc['neural-net', 'rank_ic']:.4f}.
+1. **The gain from complexity is sparsity, not nonlinearity.** Rank IC rises
+   monotonically from {accuracy.loc[baseline, 'rank_ic']:.4f} for a single
+   momentum characteristic to {accuracy.loc['ridge', 'rank_ic']:.4f} for ridge
+   to {accuracy.loc[best, 'rank_ic']:.4f} for {best}
+   (*t* = {accuracy.loc[best, 'rank_ic_tstat']:.2f} against zero). But in a
+   paired test {best} beats ridge
+   (*t* = {compare(best, 'ridge', 'ic_diff_tstat'):.2f}) and does **not** beat
+   {best_linear}, the best linear model
+   (*t* = {compare(best, best_linear, 'ic_diff_tstat'):.2f},
+   *p* = {compare(best, best_linear, 'ic_diff_pvalue'):.2f}). The neural network
+   is significantly *worse* than {best_linear} on squared error.
 2. The accuracy ranking is not the tradability ranking. Ridge breaks even at
    {performance.loc['ridge', 'breakeven_cost_bps']:.0f} bps one-way and is
    negative at 20; {best} breaks even at
@@ -266,20 +281,65 @@ Detail in `docs/METHODOLOGY.md`. The four things that matter most:
 
 {md(accuracy)}
 
-`dm_tstat_vs_ridge` is a Diebold-Mariano test on monthly squared error against
-ridge; negative favours the row.
-
-**Complexity pays, up to a point.** {best} improves rank IC by
-{accuracy.loc[best, 'rank_ic'] - accuracy.loc['ridge', 'rank_ic']:+.4f} over
-ridge, and the Diebold-Mariano statistic of
-{accuracy.loc[best, 'dm_tstat_vs_ridge']:.2f} says the squared-error improvement
-exceeds its own standard error. The neural network does not beat boosting. That
-is the expected outcome for {run['n_assets']} assets and
-{run['n_predictors']} return-based predictors: boosting at depth 2 to 4 fits
-low-order interactions, which is about the amount of structure this data
-supports, whereas a network must learn a representation from the same thin
-signal. It is not evidence about networks in general.
+**The point estimates rise monotonically along the ladder** — {baseline}
+{accuracy.loc[baseline, 'rank_ic']:.4f}, ridge
+{accuracy.loc['ridge', 'rank_ic']:.4f}, lasso
+{accuracy.loc['lasso', 'rank_ic']:.4f}, {best}
+{accuracy.loc[best, 'rank_ic']:.4f} — which invites the conclusion that
+complexity pays. That conclusion does not survive a paired test.
 {figure("fig1_forecast_accuracy", "Experiment 1: mean rank IC, its Newey-West t-statistic, and out-of-sample R-squared across the model ladder")}
+
+### 3.1 The gain is sparsity, not nonlinearity
+
+Both models face the same cross-section every month, so their monthly ICs can
+be differenced pairwise. The common component cancels and the resulting test is
+far tighter than comparing two standard errors.
+
+{md(comparisons)}
+
+`ic_diff_tstat` tests the rank-IC gap; `dm_tstat_squared_error` is
+Diebold-Mariano on squared error, where negative favours the row.
+
+Read the two comparisons against `{best_linear}`, the best linear model, and
+against ridge:
+
+- **{best} beats ridge**: IC gap
+  {compare(best, 'ridge', 'ic_difference'):+.4f},
+  *t* = {compare(best, 'ridge', 'ic_diff_tstat'):.2f}; Diebold-Mariano
+  *t* = {compare(best, 'ridge', 'dm_tstat_squared_error'):.2f}.
+- **{best} does *not* beat {best_linear}**: IC gap only
+  {compare(best, best_linear, 'ic_difference'):+.4f},
+  *t* = {compare(best, best_linear, 'ic_diff_tstat'):.2f}
+  (*p* = {compare(best, best_linear, 'ic_diff_pvalue'):.2f}), and on squared
+  error *t* = {compare(best, best_linear, 'dm_tstat_squared_error'):.2f}
+  (*p* = {compare(best, best_linear, 'dm_pvalue'):.2f}) — indistinguishable.
+- **The neural network is *worse* than {best_linear}**: IC gap
+  {compare('neural-net', best_linear, 'ic_difference'):+.4f}, and on squared
+  error it loses significantly
+  (*t* = {compare('neural-net', best_linear, 'dm_tstat_squared_error'):+.2f},
+  *p* = {compare('neural-net', best_linear, 'dm_pvalue'):.3f}).
+
+So the answer to the project's stated question is **no, not reliably**. What
+separates ridge from boosting is almost entirely the sparse regularisation in
+between: ridge selects a penalty so small it is effectively OLS — with
+{run['n_predictors']} predictors and {run['n_observations']:,} observations
+there is no ill-conditioning for shrinkage to fix — whereas Lasso's variable
+selection is a real restriction that pays out of sample. Adding nonlinearity on
+top of that buys a further
+{compare(best, best_linear, 'ic_difference'):+.4f} of IC, which is not
+distinguishable from zero.
+
+Note also that no *single adjacent* step in the ladder is significant on its
+own. Only the cumulative gap from ridge to {best} clears conventional
+significance. A table of point estimates would have supported a much stronger
+claim than the data does.
+
+That the network trails is the expected outcome for {run['n_assets']} assets and
+{run['n_predictors']} return-based predictors: boosting at depth 2 to 4 fits
+low-order interactions, about the amount of structure this data supports,
+whereas a network must learn a representation from the same thin signal. It is
+not evidence about networks in general, and on a firm-level panel with hundreds
+of characteristics the literature finds the opposite.
 
 **On the negative out-of-sample R².** IC and R² measure different things, and
 the gap is diagnosable rather than contradictory. IC asks whether the *ordering*

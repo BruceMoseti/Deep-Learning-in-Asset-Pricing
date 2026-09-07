@@ -22,11 +22,17 @@ import pandas as pd
 from xsap.artifacts import dataset, save_json, save_series, save_table
 from xsap.config import Config
 from xsap.features import FEATURE_NAMES
-from xsap.metrics import diebold_mariano, monthly_ic, summarise_forecasts
+from xsap.metrics import (
+    diebold_mariano,
+    ic_difference_test,
+    monthly_ic,
+    summarise_forecasts,
+)
 from xsap.models import default_models
 from xsap.walkforward import expanding_splits, run_walkforward
 
 BENCHMARK = "ridge"
+LINEAR = ("ols", "ridge", "lasso", "enet")
 
 
 def main() -> None:
@@ -64,16 +70,68 @@ def main() -> None:
     accuracy = pd.DataFrame(rows).T
     accuracy.index.name = "model"
 
-    # Is any accuracy gain over the best linear model larger than its own noise?
+    # Two separate comparisons, because "does complexity pay?" hides two
+    # questions.  Against ridge, any gain mixes better regularisation with
+    # nonlinearity.  Against the *best* linear model, only the nonlinearity is
+    # left -- which is the question actually being asked.
+    best_linear = max(
+        (n for n in names if n in LINEAR), key=lambda n: rows[n]["rank_ic"], default=None
+    )
     for name in names:
-        if name == BENCHMARK:
-            accuracy.loc[name, "dm_tstat_vs_ridge"] = float("nan")
-            continue
-        test = diebold_mariano(
-            predictions[name], predictions[BENCHMARK], predictions["y"], cfg.newey_west_lags
-        )
-        accuracy.loc[name, "dm_tstat_vs_ridge"] = test["tstat"]
+        for benchmark, column in (
+            (BENCHMARK, "dm_tstat_vs_ridge"),
+            (best_linear, "dm_tstat_vs_best_linear"),
+        ):
+            if benchmark is None or name == benchmark:
+                accuracy.loc[name, column] = float("nan")
+                continue
+            test = diebold_mariano(
+                predictions[name],
+                predictions[benchmark],
+                predictions["y"],
+                cfg.newey_west_lags,
+            )
+            accuracy.loc[name, column] = test["tstat"]
     save_table(accuracy, "exp1_forecast_accuracy")
+
+    # Pairwise tests, because a table of point estimates invites the reader to
+    # rank models by eye and call the ordering a result.  Adjacent rungs of the
+    # ladder answer "did this step help?"; the contrasts against the best
+    # linear model answer "did nonlinearity help, once regularisation is held
+    # fixed?", which is the question the project actually poses.
+    pairs = [(a, b) for a, b in zip(names[1:], names[:-1])]
+    for candidate in (best_linear, BENCHMARK, "single-signal"):
+        for name in names:
+            if candidate and name != candidate and (name, candidate) not in pairs:
+                pairs.append((name, candidate))
+
+    comparisons = []
+    for a, b in pairs:
+        if a not in names or b not in names:
+            continue
+        paired = ic_difference_test(
+            predictions[a], predictions[b], predictions["y"], cfg.newey_west_lags
+        )
+        squared = diebold_mariano(
+            predictions[a], predictions[b], predictions["y"], cfg.newey_west_lags
+        )
+        comparisons.append(
+            {
+                "model": a,
+                "benchmark": b,
+                "ic_model": paired["ic_a"],
+                "ic_benchmark": paired["ic_b"],
+                "ic_difference": paired["ic_difference"],
+                "ic_diff_tstat": paired["tstat"],
+                "ic_diff_pvalue": paired["pvalue"],
+                "dm_tstat_squared_error": squared["tstat"],
+                "dm_pvalue": squared["pvalue"],
+            }
+        )
+    save_table(
+        pd.DataFrame(comparisons).set_index(["model", "benchmark"]),
+        "exp1_model_comparisons",
+    )
 
     ic_series = pd.concat(
         {name: monthly_ic(predictions[name], predictions["y"]) for name in names}, axis=1
@@ -98,6 +156,8 @@ def main() -> None:
             "oos_last_month": str(predictions.index.get_level_values("month").max()),
             "oos_months": int(predictions.index.get_level_values("month").nunique()),
             "models": names,
+            "best_linear_model": best_linear,
+            "best_model": max(names, key=lambda n: rows[n]["rank_ic"]),
         },
         "exp1_run",
     )
