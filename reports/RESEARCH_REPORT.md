@@ -664,7 +664,7 @@ the real panel. Its median size over the grid is
 **What actually breaks:**
 
 - *The asymptotic version of the same statistic.* Referring the identical
-  quadratic form to χ²*_N_* instead of the exact *F* gives size
+  quadratic form to χ²(*N*) instead of the exact *F* gives size
   0.070 at *N* = 10,
   0.270 at *N* = 50,
   0.753 at *N* = 100 and
