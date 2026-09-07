@@ -376,6 +376,8 @@ negative favours the row.
 
 {md(comparisons_adjacent)}
 
+{figure("fig13_model_comparisons", "Differences in mean rank IC with 95% intervals. Almost every interval crosses zero.")}
+
 **Not one adjacent step is a significant improvement.** The only significant row
 is the last, and it goes the wrong way: the neural network is significantly
 *worse* than boosting. Every rung of the ladder is small relative to its own

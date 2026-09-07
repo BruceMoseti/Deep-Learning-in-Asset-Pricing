@@ -69,13 +69,31 @@ def figure_forecast_accuracy() -> None:
     axes[1].axhline(1.96, color="black", lw=0.8, ls="--")
     axes[1].axhline(3.0, color="#c0392b", lw=0.8, ls=":")
     axes[1].set_title("Newey-West t-statistic of mean IC")
-    axes[1].text(len(models) - 0.4, 2.02, "1.96", fontsize=7, ha="right")
-    axes[1].text(len(models) - 0.4, 3.06, "3.0", fontsize=7, ha="right", color="#c0392b")
+    axes[1].text(-0.4, 2.04, "1.96", fontsize=7)
+    axes[1].text(-0.4, 3.08, "3.0", fontsize=7, color="#c0392b")
 
-    axes[2].bar(models, accuracy["r2_oos"] * 100.0, color=colours)
+    # The single-characteristic baseline is a ranking, not a calibrated return
+    # forecast, so its squared error is not comparable and its -30% would
+    # compress the axis to the point of hiding the differences that matter.
+    fitted = [m for m in models if m != "single-signal"]
+    axes[2].bar(
+        fitted,
+        accuracy.loc[fitted, "r2_oos"] * 100.0,
+        color=[HIGHLIGHT.get(m, "#95a5a6") for m in fitted],
+    )
     axes[2].axhline(0.0, color="black", lw=0.8)
     axes[2].set_title("Out-of-sample $R^2$ vs a zero forecast")
     axes[2].set_ylabel("percent")
+    axes[2].text(
+        0.5,
+        0.03,
+        "baseline omitted: a ranking, not a\ncalibrated forecast ($R^2$ = "
+        f"{accuracy.loc['single-signal', 'r2_oos'] * 100:.0f}%)",
+        transform=axes[2].transAxes,
+        fontsize=6.5,
+        ha="center",
+        style="italic",
+    )
 
     for ax in axes:
         ax.tick_params(axis="x", rotation=45)
@@ -87,6 +105,58 @@ def figure_forecast_accuracy() -> None:
         fontsize=10,
     )
     _save(fig, "fig1_forecast_accuracy")
+
+
+def figure_model_comparisons() -> None:
+    """The headline of Experiment 1: which differences are actually detectable."""
+    path = RESULTS / "exp1_model_comparisons.csv"
+    if not path.exists():
+        print("  skipping comparison figure (exp1_model_comparisons.csv not found)")
+        return
+    comparisons = _table("exp1_model_comparisons")
+    order = [m for m in LADDER if m in set(comparisons["model"])]
+    adjacent = [(a, b) for a, b in zip(order[1:], order[:-1])]
+
+    best_linear = read_json("exp1_run").get("best_linear_model", "enet")
+    against_linear = [
+        (m, best_linear) for m in order if m != best_linear
+    ]
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
+    for ax, pairs, title in (
+        (axes[0], adjacent, "Each rung against the one below it"),
+        (axes[1], against_linear, f"Each model against {best_linear}"),
+    ):
+        labels, diffs, errors, colours = [], [], [], []
+        for model, benchmark in pairs:
+            row = comparisons[
+                (comparisons["model"] == model) & (comparisons["benchmark"] == benchmark)
+            ]
+            if row.empty:
+                continue
+            diff = float(row["ic_difference"].iloc[0])
+            tstat = float(row["ic_diff_tstat"].iloc[0])
+            labels.append(f"{model}\nvs {benchmark}")
+            diffs.append(diff)
+            # Back out the standard error from the point estimate and t.
+            errors.append(1.96 * abs(diff / tstat) if tstat else np.nan)
+            colours.append("#c0392b" if abs(tstat) > 1.96 else "#95a5a6")
+
+        positions = np.arange(len(labels))
+        ax.barh(positions, diffs, xerr=errors, color=colours, capsize=3, height=0.6)
+        ax.axvline(0.0, color="black", lw=1.0)
+        ax.set_yticks(positions)
+        ax.set_yticklabels(labels, fontsize=6.5)
+        ax.set_xlabel("difference in mean rank IC (95% interval)")
+        ax.set_title(title, fontsize=9)
+        ax.invert_yaxis()
+
+    fig.suptitle(
+        "Red = the 95% interval excludes zero.  Almost nothing does.",
+        y=1.05,
+        fontsize=10,
+    )
+    _save(fig, "fig13_model_comparisons")
 
 
 def figure_calibration_gap() -> None:
@@ -369,7 +439,7 @@ def figure_ablation() -> None:
     axes[0].axvline(baseline, color="#c0392b", lw=1.2, ls="--", label="all predictors")
     axes[0].set_title("IC with one group removed")
     axes[0].set_xlabel("rank IC")
-    axes[0].legend(fontsize=7.5, frameon=False)
+    axes[0].legend(fontsize=7.5, frameon=False, loc="lower right")
 
     axes[1].barh(order, only.loc[order, "rank_ic"], color="#16a085")
     axes[1].axvline(baseline, color="#c0392b", lw=1.2, ls="--")
@@ -454,6 +524,7 @@ def main() -> None:
     print("building figures")
     for builder in (
         figure_forecast_accuracy,
+        figure_model_comparisons,
         figure_calibration_gap,
         figure_cumulative_performance,
         figure_cost_erosion,

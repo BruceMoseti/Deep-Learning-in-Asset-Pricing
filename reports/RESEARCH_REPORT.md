@@ -177,6 +177,12 @@ negative favours the row.
 | xgboost vs enet       |     0.0493 |         0.0432 |          0.0060 |          1.4609 |           0.1440 |                  -0.2971 |      0.7664 |
 | neural-net vs xgboost |     0.0317 |         0.0493 |         -0.0176 |         -2.9832 |           0.0029 |                   3.5551 |      0.0004 |
 
+
+![Differences in mean rank IC with 95% intervals. Almost every interval crosses zero.](figures/fig13_model_comparisons.png)
+
+*Differences in mean rank IC with 95% intervals. Almost every interval crosses zero.*
+
+
 **Not one adjacent step is a significant improvement.** The only significant row
 is the last, and it goes the wrong way: the neural network is significantly
 *worse* than boosting. Every rung of the ladder is small relative to its own
