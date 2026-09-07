@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+
+# Raw downloads and intermediate artefacts are reproducible from
+# data/raw/manifest.json and the scripts in scripts/.
+data/raw/
+data/processed/
+results/
