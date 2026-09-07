@@ -32,11 +32,11 @@ on an expanding window, 407 out-of-sample months from
    *p* = 0.14). The neural network
    is significantly *worse* than enet on squared error.
 2. The accuracy ranking is not the tradability ranking. Ridge breaks even at
-   18 bps one-way and is
+   18 bps one-way and turns
    negative at 20; xgboost breaks even at
-   32; the one-line baseline,
-   which trades least, breaks even highest of all at
-   42.
+   32 bps; and the one-line
+   baseline, which trades least, breaks even highest of all at
+   42 bps.
 3. The alpha is real and unremarkable in context. xgboost earns
    7.0% a year against the six-factor model
    (*t* = 2.83), but its own *t* of

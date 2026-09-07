@@ -276,11 +276,11 @@ on an expanding window, {run['oos_months']} out-of-sample months from
    *p* = {compare(best, best_linear, 'ic_diff_pvalue'):.2f}). The neural network
    is significantly *worse* than {best_linear} on squared error.
 2. The accuracy ranking is not the tradability ranking. Ridge breaks even at
-   {performance.loc['ridge', 'breakeven_cost_bps']:.0f} bps one-way and is
+   {performance.loc['ridge', 'breakeven_cost_bps']:.0f} bps one-way and turns
    negative at 20; {best} breaks even at
-   {performance.loc[best, 'breakeven_cost_bps']:.0f}; the one-line baseline,
-   which trades least, breaks even highest of all at
-   {performance.loc[baseline, 'breakeven_cost_bps']:.0f}.
+   {performance.loc[best, 'breakeven_cost_bps']:.0f} bps; and the one-line
+   baseline, which trades least, breaks even highest of all at
+   {performance.loc[baseline, 'breakeven_cost_bps']:.0f} bps.
 3. The alpha is real and unremarkable in context. {best} earns
    {pct(ff6.loc[best, 'alpha_annual'])} a year against the six-factor model
    (*t* = {ff6.loc[best, 'alpha_tstat']:.2f}), but its own *t* of
