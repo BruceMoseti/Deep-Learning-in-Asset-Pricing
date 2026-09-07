@@ -12,7 +12,8 @@ for stage in \
     03_inference.py \
     04_high_dimensional.py \
     05_robustness.py \
-    06_figures.py
+    06_figures.py \
+    07_report.py
 do
     echo "=============== ${stage} ==============="
     started=$SECONDS

@@ -1,9 +1,9 @@
 PYTHON ?= python3
 export PYTHONPATH := $(CURDIR)/src
 
-.PHONY: all setup test data exp1 exp2 exp3 exp4 exp5 figures clean fast
+.PHONY: all setup test data exp1 exp2 exp3 exp4 exp5 figures report clean fast
 
-all: data exp1 exp2 exp3 exp4 exp5 figures
+all: data exp1 exp2 exp3 exp4 exp5 figures report
 
 setup:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -38,6 +38,10 @@ exp5:
 figures:
 	$(PYTHON) scripts/06_figures.py
 
+# Rebuild the research report from whatever is currently in results/.
+report:
+	$(PYTHON) scripts/07_report.py
+
 # End-to-end smoke run: minutes rather than an hour, same code path.
 fast:
 	$(PYTHON) scripts/00_fetch_data.py
@@ -47,6 +51,7 @@ fast:
 	$(PYTHON) scripts/04_high_dimensional.py --quick
 	$(PYTHON) scripts/05_robustness.py --skip-ablation
 	$(PYTHON) scripts/06_figures.py
+	$(PYTHON) scripts/07_report.py
 
 clean:
 	rm -rf results reports/figures reports/tables data/processed
