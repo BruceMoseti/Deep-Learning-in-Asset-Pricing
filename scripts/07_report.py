@@ -731,10 +731,13 @@ All three are now regression tests in `tests/test_montecarlo.py`.
 
 ```bash
 pip install -r requirements.txt
-make test     # {count_tests()} tests
-make all      # full pipeline
-python3 scripts/07_report.py
+make test     # {count_tests()} test functions
+make all      # full pipeline, then regenerates this report
 ```
+
+The tests are not incidental to the result. `tests/test_no_lookahead.py` is what
+makes the numbers above believable, and `tests/test_montecarlo.py` encodes the
+three simulation bugs of §7.6 so they cannot come back.
 
 Raw inputs are pinned to immutable commits with SHA-256 digests in
 `data/raw/manifest.json`. This matters because the Fama-French library is

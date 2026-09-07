@@ -608,55 +608,55 @@ the panel: implied Student-*t* degrees of freedom
 
 | error_model / n_assets                         |   grs |   wald_chi2 |   grs_shrunk |   pesaran_yamagata |
 |:-----------------------------------------------|------:|------------:|-------------:|-------------------:|
-| error_model=common_vol, n_assets=10            | 0.070 |       0.077 |        0.057 |              0.100 |
-| error_model=common_vol, n_assets=25            | 0.063 |       0.137 |        0.030 |              0.103 |
-| error_model=common_vol, n_assets=50            | 0.040 |       0.227 |        0.003 |              0.117 |
-| error_model=common_vol, n_assets=100           | 0.073 |       0.783 |        0.000 |              0.143 |
-| error_model=common_vol, n_assets=200           | 0.057 |       1.000 |        0.000 |              0.217 |
-| error_model=common_vol, n_assets=300           | 0.070 |       1.000 |        0.000 |              0.243 |
-| error_model=empirical_wild, n_assets=10        | 0.063 |       0.083 |        0.043 |              0.073 |
-| error_model=empirical_wild, n_assets=25        | 0.053 |       0.130 |        0.027 |              0.113 |
-| error_model=empirical_wild, n_assets=50        | 0.043 |       0.257 |        0.007 |              0.113 |
-| error_model=empirical_wild, n_assets=100       | 0.033 |       0.770 |        0.000 |              0.120 |
-| error_model=empirical_wild, n_assets=200       | 0.040 |       1.000 |        0.000 |              0.193 |
-| error_model=empirical_wild, n_assets=300       | 0.053 |       1.000 |        0.000 |              0.177 |
-| error_model=empirical_wild_block, n_assets=10  | 0.050 |       0.067 |        0.037 |              0.057 |
-| error_model=empirical_wild_block, n_assets=25  | 0.050 |       0.137 |        0.017 |              0.120 |
-| error_model=empirical_wild_block, n_assets=50  | 0.063 |       0.323 |        0.000 |              0.183 |
-| error_model=empirical_wild_block, n_assets=100 | 0.053 |       0.843 |        0.000 |              0.190 |
-| error_model=empirical_wild_block, n_assets=200 | 0.067 |       1.000 |        0.000 |              0.250 |
-| error_model=empirical_wild_block, n_assets=300 | 0.090 |       1.000 |        0.000 |              0.247 |
-| error_model=gaussian, n_assets=10              | 0.070 |       0.103 |        0.063 |              0.093 |
-| error_model=gaussian, n_assets=25              | 0.043 |       0.093 |        0.033 |              0.103 |
-| error_model=gaussian, n_assets=50              | 0.063 |       0.277 |        0.007 |              0.103 |
-| error_model=gaussian, n_assets=100             | 0.050 |       0.753 |        0.000 |              0.153 |
-| error_model=gaussian, n_assets=200             | 0.050 |       1.000 |        0.000 |              0.180 |
-| error_model=gaussian, n_assets=300             | 0.077 |       1.000 |        0.000 |              0.183 |
-| error_model=gaussian_independent, n_assets=10  | 0.043 |       0.080 |        0.033 |              0.073 |
-| error_model=gaussian_independent, n_assets=25  | 0.040 |       0.100 |        0.030 |              0.050 |
-| error_model=gaussian_independent, n_assets=50  | 0.050 |       0.297 |        0.017 |              0.060 |
-| error_model=gaussian_independent, n_assets=100 | 0.053 |       0.757 |        0.000 |              0.067 |
-| error_model=gaussian_independent, n_assets=200 | 0.040 |       1.000 |        0.000 |              0.057 |
-| error_model=gaussian_independent, n_assets=300 | 0.047 |       1.000 |        0.000 |              0.070 |
-| error_model=student_t, n_assets=10             | 0.037 |       0.067 |        0.030 |              0.077 |
-| error_model=student_t, n_assets=25             | 0.060 |       0.130 |        0.013 |              0.090 |
-| error_model=student_t, n_assets=50             | 0.053 |       0.213 |        0.010 |              0.120 |
-| error_model=student_t, n_assets=100            | 0.047 |       0.723 |        0.000 |              0.123 |
-| error_model=student_t, n_assets=200            | 0.050 |       1.000 |        0.000 |              0.207 |
-| error_model=student_t, n_assets=300            | 0.060 |       1.000 |        0.000 |              0.247 |
+| error_model=common_vol, n_assets=10            | 0.043 |       0.060 |        0.033 |              0.067 |
+| error_model=common_vol, n_assets=25            | 0.050 |       0.113 |        0.017 |              0.090 |
+| error_model=common_vol, n_assets=50            | 0.053 |       0.233 |        0.000 |              0.117 |
+| error_model=common_vol, n_assets=100           | 0.033 |       0.753 |        0.000 |              0.180 |
+| error_model=common_vol, n_assets=200           | 0.050 |       1.000 |        0.000 |              0.170 |
+| error_model=common_vol, n_assets=300           | 0.053 |       1.000 |        0.000 |              0.220 |
+| error_model=empirical_wild, n_assets=10        | 0.037 |       0.063 |        0.027 |              0.080 |
+| error_model=empirical_wild, n_assets=25        | 0.060 |       0.113 |        0.020 |              0.107 |
+| error_model=empirical_wild, n_assets=50        | 0.043 |       0.253 |        0.003 |              0.137 |
+| error_model=empirical_wild, n_assets=100       | 0.020 |       0.817 |        0.000 |              0.133 |
+| error_model=empirical_wild, n_assets=200       | 0.037 |       1.000 |        0.000 |              0.190 |
+| error_model=empirical_wild, n_assets=300       | 0.037 |       1.000 |        0.000 |              0.210 |
+| error_model=empirical_wild_block, n_assets=10  | 0.050 |       0.070 |        0.037 |              0.117 |
+| error_model=empirical_wild_block, n_assets=25  | 0.080 |       0.167 |        0.033 |              0.093 |
+| error_model=empirical_wild_block, n_assets=50  | 0.057 |       0.330 |        0.003 |              0.127 |
+| error_model=empirical_wild_block, n_assets=100 | 0.063 |       0.780 |        0.000 |              0.183 |
+| error_model=empirical_wild_block, n_assets=200 | 0.073 |       1.000 |        0.000 |              0.263 |
+| error_model=empirical_wild_block, n_assets=300 | 0.060 |       1.000 |        0.000 |              0.257 |
+| error_model=gaussian, n_assets=10              | 0.043 |       0.070 |        0.037 |              0.067 |
+| error_model=gaussian, n_assets=25              | 0.050 |       0.113 |        0.030 |              0.083 |
+| error_model=gaussian, n_assets=50              | 0.057 |       0.270 |        0.007 |              0.100 |
+| error_model=gaussian, n_assets=100             | 0.053 |       0.753 |        0.000 |              0.130 |
+| error_model=gaussian, n_assets=200             | 0.057 |       1.000 |        0.000 |              0.207 |
+| error_model=gaussian, n_assets=300             | 0.053 |       1.000 |        0.000 |              0.223 |
+| error_model=gaussian_independent, n_assets=10  | 0.040 |       0.040 |        0.033 |              0.047 |
+| error_model=gaussian_independent, n_assets=25  | 0.057 |       0.097 |        0.030 |              0.053 |
+| error_model=gaussian_independent, n_assets=50  | 0.063 |       0.287 |        0.017 |              0.070 |
+| error_model=gaussian_independent, n_assets=100 | 0.040 |       0.800 |        0.000 |              0.053 |
+| error_model=gaussian_independent, n_assets=200 | 0.053 |       1.000 |        0.000 |              0.050 |
+| error_model=gaussian_independent, n_assets=300 | 0.070 |       1.000 |        0.000 |              0.073 |
+| error_model=student_t, n_assets=10             | 0.017 |       0.020 |        0.007 |              0.057 |
+| error_model=student_t, n_assets=25             | 0.053 |       0.103 |        0.027 |              0.100 |
+| error_model=student_t, n_assets=50             | 0.030 |       0.213 |        0.000 |              0.090 |
+| error_model=student_t, n_assets=100            | 0.040 |       0.767 |        0.000 |              0.147 |
+| error_model=student_t, n_assets=200            | 0.040 |       1.000 |        0.000 |              0.147 |
+| error_model=student_t, n_assets=300            | 0.047 |       1.000 |        0.000 |              0.233 |
 
 | test             |   nominal_size |   worst_size | at_error_model       |   at_n_assets |   at_n_obs |   at_ratio_n_over_t |   median_size_over_grid |   median_size_adjusted_power |
 |:-----------------|---------------:|-------------:|:---------------------|--------------:|-----------:|--------------------:|------------------------:|-----------------------------:|
-| grs              |          0.050 |        0.090 | empirical_wild_block |           300 |        360 |               0.833 |                   0.053 |                        0.220 |
-| wald_chi2        |          0.050 |        1.000 | gaussian             |           100 |        120 |               0.833 |                   0.562 |                        0.220 |
-| grs_shrunk       |          0.050 |        0.063 | gaussian             |            10 |        360 |               0.028 |                   0.000 |                        0.202 |
-| pesaran_yamagata |          0.050 |        0.267 | empirical_wild_block |           300 |        120 |               2.500 |                   0.118 |                        0.123 |
+| grs              |          0.050 |        0.080 | empirical_wild_block |            25 |        360 |               0.069 |                   0.050 |                        0.207 |
+| wald_chi2        |          0.050 |        1.000 | gaussian             |           100 |        120 |               0.833 |                   0.572 |                        0.207 |
+| grs_shrunk       |          0.050 |        0.037 | empirical_wild_block |            10 |        120 |               0.083 |                   0.000 |                        0.210 |
+| pesaran_yamagata |          0.050 |        0.283 | empirical_wild_block |           300 |        120 |               2.500 |                   0.117 |                        0.135 |
 
 **GRS holds its size everywhere**, at up to
 *N/T* = 0.83, under heavy tails, under a
 persistent common volatility factor, and under residual vectors resampled from
 the real panel. Its median size over the grid is
-0.053.
+0.050.
 
 ![Empirical size against N/T under three error structures. GRS is flat at 5%; its asymptotic counterpart is not.](figures/fig8_test_size.png)
 
@@ -667,8 +667,8 @@ the real panel. Its median size over the grid is
 
 - *The asymptotic version of the same statistic.* Referring the identical
   quadratic form to χ²*_N_* instead of the exact *F* gives size
-  0.103 at *N* = 10,
-  0.277 at *N* = 50,
+  0.070 at *N* = 10,
+  0.270 at *N* = 50,
   0.753 at *N* = 100 and
   1.000 at *N* = 200. The finite-sample
   correction is doing all the work.
@@ -679,9 +679,9 @@ the real panel. Its median size over the grid is
   inference.
 - *The large-N test's assumption.* Pesaran-Yamagata never inverts an *N* × *N*
   matrix and is correctly sized under cross-sectional independence
-  (0.070 at *N* = 300).
+  (0.073 at *N* = 300).
   Under the correlation these portfolios actually have, its size rises to
-  0.247 — and rises
+  0.257 — and rises
   *with N*, the opposite of what an asymptotic-in-*N* test should do.
 
 ### 7.3 Existence, not size, is the binding constraint on GRS
@@ -809,10 +809,13 @@ All three are now regression tests in `tests/test_montecarlo.py`.
 
 ```bash
 pip install -r requirements.txt
-make test     # 78 tests
-make all      # full pipeline
-python3 scripts/07_report.py
+make test     # 78 test functions
+make all      # full pipeline, then regenerates this report
 ```
+
+The tests are not incidental to the result. `tests/test_no_lookahead.py` is what
+makes the numbers above believable, and `tests/test_montecarlo.py` encodes the
+three simulation bugs of §7.6 so they cannot come back.
 
 Raw inputs are pinned to immutable commits with SHA-256 digests in
 `data/raw/manifest.json`. This matters because the Fama-French library is

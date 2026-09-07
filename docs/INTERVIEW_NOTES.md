@@ -279,9 +279,10 @@ What actually breaks is different, and more interesting:
 
 - **The asymptotic version of the same statistic.** Referring the identical
   quadratic form to \(\chi^2_N\) instead of the exact \(F\) gives a rejection
-  rate of 5% at \(N = 10\), 25% at \(N = 50\), 78% at \(N = 100\), and **100%**
-  at \(N \ge 200\) with \(T = 360\). The finite-sample correction is doing all
-  the work.
+  rate of about 10% at \(N = 10\), 28% at \(N = 50\), 75% at \(N = 100\), and
+  **100%** at \(N \ge 200\) with \(T = 360\). Same data, same statistic, only
+  the reference distribution differs -- the finite-sample correction is doing
+  all the work.
 - **Shrinkage without recalibration.** A Ledoit-Wolf covariance conditions
   better and shrinks the statistic, but the \(F\) critical value is unchanged,
   so size collapses to zero and the test stops rejecting anything. Better
@@ -289,7 +290,7 @@ What actually breaks is different, and more interesting:
 - **The large-\(N\) test's assumption.** Pesaran-Yamagata never inverts an
   \(N \times N\) matrix and stays defined when \(N > T\), and it is correctly
   sized under cross-sectional independence. Under the correlation actually
-  present in these portfolios its size rises from 7% to 31% — and it rises
+  present in these portfolios its size reaches 28% — and it rises
   *with \(N\)*, which is the opposite of what an asymptotic-in-\(N\) test should
   do.
 

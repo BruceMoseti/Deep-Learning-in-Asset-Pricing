@@ -57,13 +57,13 @@ Gibbons-Ross-Shanken test degrades as \(N/T \to 1\) because it inverts an
 \(N \times N\) covariance matrix. It does not: GRS is exact in finite samples
 under its assumptions for any \(N \le T - K - 1\), and holds its nominal 5% at
 \(N/T = 0.83\) even with heavy tails, a persistent common volatility factor, and
-residuals resampled from the real panel — median size 0.053 over the whole grid.
-What does break is the *asymptotic* version of the same statistic (rejection rate
-5% → 100% as \(N\) goes 10 → 200, median size 0.56), shrinkage paired with an
-unadjusted reference distribution (size collapses to zero and the test rejects
-nothing), and the large-\(N\) alternative, whose size reaches 0.25–0.27 under the
-cross-sectional dependence real portfolios actually have — and rises *with*
-\(N\), which is the opposite of what an asymptotic-in-\(N\) test should do.
+residuals resampled from the real panel — median size 0.050 across the whole
+grid, worst case 0.080. What does break is the *asymptotic* version of the same
+statistic (rejection rate 5% → 100% as \(N\) goes 10 → 200; median size 0.57),
+shrinkage paired with an unadjusted reference distribution (median size 0.000 —
+the test rejects nothing), and the large-\(N\) alternative, whose size reaches
+0.28 under the cross-sectional dependence real portfolios actually have, and
+rises *with* \(N\), the opposite of what an asymptotic-in-\(N\) test should do.
 
 **Predictability declines across the sample.** Mean IC by decade is strongest in
 the 1990s and much weaker in the 2010s, for every model. Either these relations
