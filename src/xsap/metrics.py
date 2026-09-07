@@ -44,6 +44,22 @@ def r2_oos(predictions: pd.Series, targets: pd.Series) -> float:
     return 1.0 - sse / sst if sst > 0 else float("nan")
 
 
+def calibration_slope(predictions: pd.Series, targets: pd.Series) -> float:
+    """Slope from regressing the outcome on the forecast, pooled out of sample.
+
+    A slope near one means the forecast is on the right scale; a slope well
+    below one means the forecast is directionally useful but too large, which
+    is how a model can have a positive information coefficient and a negative
+    out-of-sample R-squared at the same time.  Reporting this makes that
+    distinction visible instead of leaving it as an apparent contradiction.
+    """
+    frame = pd.concat([predictions.rename("p"), targets.rename("y")], axis=1).dropna()
+    var = float(frame["p"].var())
+    if var <= 0:
+        return float("nan")
+    return float(frame[["p", "y"]].cov().iloc[0, 1] / var)
+
+
 def summarise_forecasts(
     predictions: pd.Series, targets: pd.Series, nw_lags: int = 6
 ) -> dict:
@@ -61,6 +77,7 @@ def summarise_forecasts(
         "pearson_ic": float(pearson_ic.mean()),
         "hit_rate": float((rank_ic > 0).mean()),
         "r2_oos": r2_oos(predictions, targets),
+        "calibration_slope": calibration_slope(predictions, targets),
         "n_months": int(rank_ic.notna().sum()),
     }
 

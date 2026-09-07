@@ -6,4 +6,6 @@ statsmodels==0.15.0
 xgboost==3.4.1
 torch==2.14.0
 matplotlib==3.11.1
+pyarrow==25.0.1
+tabulate==0.10.0
 pytest==9.1.1
