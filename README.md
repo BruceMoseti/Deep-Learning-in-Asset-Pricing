@@ -36,6 +36,8 @@ is significant. Ridge selects a penalty small enough to reproduce OLS, which is
 expected with 26 predictors and 249,000 observations, so what separates the ends
 of the ladder is variable selection rather than the nonlinearity above it.
 
+![Differences in mean rank IC with 95% intervals](reports/figures/fig13_model_comparisons.png)
+
 **Accuracy and tradability rank models differently.** Ridge and OLS turn over
 2.3 times the book per month, break even at about 18 basis points one-way, and
 turn negative at 20. Boosting breaks even at 32. The single-characteristic
@@ -62,6 +64,8 @@ and the large-*N* alternative, whose size reaches 0.28 under real
 cross-sectional dependence and rises with *N* rather than falling. GRS needs
 *N* < *T*; Pesaran-Yamagata needs weak cross-sectional dependence; equity panels
 violate the second and large cross-sections violate the first.
+
+![Empirical size against N/T under three error structures](reports/figures/fig8_test_size.png)
 
 **Predictability is concentrated and decaying.** The trend and drawdown group
 alone reaches IC 0.044 of the 0.049 available from all 26 predictors. Momentum
@@ -110,7 +114,7 @@ Mkt-RF and UMD print at 0.57% and 0.60% per month.
 
 ```bash
 make setup       # pip install -e ".[dev]"
-make test        # 96 tests, ~15s
+make test        # 98 tests, ~15s
 make fast        # end-to-end smoke run on the same code path, ~15 min
 make all         # full run, ~45 min on 8 cores
 ```
@@ -141,7 +145,7 @@ src/xsap/
   montecarlo.py    six error structures, four tests of the joint alpha null
   robustness.py    ablations, regimes, subperiods, alternative design choices
 scripts/           00_fetch_data ... 07_report, one per experiment
-tests/             96 tests
+tests/             98 tests
 docs/              METHODOLOGY.md, DISCUSSION.md
 reports/           RESEARCH_REPORT.md and 13 figures, generated from results/
 ```

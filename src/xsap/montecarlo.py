@@ -378,6 +378,17 @@ def simulate_pvalues(
     return {name: np.asarray(values, dtype=float) for name, values in collected.items()}
 
 
+def cell_seed(seed: int, n_obs: int, n_assets: int, error_model: str) -> int:
+    """Deterministic seed for one cell of the size/power grid.
+
+    Derived from the error model's *position* in ``ERROR_MODELS`` rather than
+    from ``hash(error_model)``.  String hashing is salted per interpreter
+    process, so a hash-derived seed changes on every run: Experiment 4 was the
+    only part of the pipeline that did not reproduce, for exactly that reason.
+    """
+    return seed + 7919 * n_obs + 31 * n_assets + 7 * ERROR_MODELS.index(error_model)
+
+
 def size_power_study(
     calibration: Calibration,
     asset_grid: tuple[int, ...],
@@ -403,7 +414,7 @@ def size_power_study(
             if n_assets > calibration.n_assets:
                 continue
             for error_model in error_models:
-                offset = seed + 7919 * n_obs + 31 * n_assets + 7 * hash(error_model) % 997
+                offset = cell_seed(seed, n_obs, n_assets, error_model)
                 under_null = simulate_pvalues(
                     calibration,
                     n_assets,
