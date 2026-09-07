@@ -120,7 +120,9 @@ make all         # full run, ~45 min on 8 cores
 ```
 
 `requirements.txt` pins the exact versions used to produce the reported numbers;
-`pyproject.toml` carries looser floors for installation.
+`pyproject.toml` carries looser floors for installation. Two consecutive full
+runs from a cleared cache produce byte-identical results, including the Monte
+Carlo tables.
 
 Stages run individually with `make data exp1 exp2 exp3 exp4 exp5 figures
 report`. Outputs land in `results/` (CSV and Parquet), `reports/tables/`
