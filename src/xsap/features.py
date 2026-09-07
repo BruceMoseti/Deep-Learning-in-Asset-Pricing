@@ -201,6 +201,18 @@ def build_features(
     return out[out.index.get_level_values("month").isin(keep)].sort_index()
 
 
+def _to_unit_interval(ranks: pd.Series, counts: pd.Series) -> pd.Series:
+    """Map ranks 1..n onto [-1, 1] with mean zero.
+
+    ``rank(pct=True)`` divides by ``n``, which puts the lowest asset at ``1/n``
+    rather than at zero and leaves the transformed cross-section with a mean of
+    ``+1/n`` instead of zero.  Dividing by ``n - 1`` after subtracting one puts
+    the extremes exactly at the endpoints and centres the cross-section.
+    """
+    spread = (counts - 1.0).where(counts > 1)
+    return 2.0 * (ranks - 1.0) / spread - 1.0
+
+
 def rank_normalise(frame: pd.DataFrame, columns=FEATURE_NAMES) -> pd.DataFrame:
     """Map each predictor to [-1, 1] by its cross-sectional rank within a month.
 
@@ -213,8 +225,9 @@ def rank_normalise(frame: pd.DataFrame, columns=FEATURE_NAMES) -> pd.DataFrame:
     out = frame.copy()
     grouped = out.groupby("month", group_keys=False)
     for column in columns:
-        ranks = grouped[column].rank(pct=True)
-        out[column] = (2.0 * ranks - 1.0).fillna(0.0)
+        ranks = grouped[column].rank()
+        counts = grouped[column].transform("count")
+        out[column] = _to_unit_interval(ranks, counts).fillna(0.0)
     return out
 
 
@@ -231,6 +244,5 @@ def make_target(frame: pd.DataFrame, mode: str = "zscore") -> pd.Series:
     if mode == "zscore":
         return ((y - grouped.transform("mean")) / grouped.transform("std")).rename("y")
     if mode == "rank":
-        pct = grouped.rank(pct=True)
-        return (2.0 * pct - 1.0).rename("y")
+        return _to_unit_interval(grouped.rank(), grouped.transform("count")).rename("y")
     raise ValueError(f"unknown target mode: {mode}")

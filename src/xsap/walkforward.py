@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from xsap.config import Config
-from xsap.features import FEATURE_NAMES
+from xsap.features import FEATURE_NAMES, _to_unit_interval
 
 
 @dataclass(frozen=True)
@@ -167,5 +167,7 @@ def standardise_predictions(predictions: pd.DataFrame, models: list[str]) -> pd.
     out = predictions.copy()
     for model in models:
         grouped = out.groupby("month")[model]
-        out[model + "_rank"] = 2.0 * grouped.rank(pct=True) - 1.0
+        out[model + "_rank"] = _to_unit_interval(
+            grouped.rank(), grouped.transform("count")
+        )
     return out
