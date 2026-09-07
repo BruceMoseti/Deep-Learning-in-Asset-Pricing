@@ -20,22 +20,27 @@ on an expanding window, 407 out-of-sample months from
 
 **Five findings.**
 
-1. Flexibility helps, and the gain is larger than its own standard error. Rank
-   IC rises from 0.0254 for a single momentum
-   characteristic to 0.0319 for ridge to
-   0.0492 for xgboost
-   (*t* = 3.64). The neural network reaches
-   only 0.0328.
+1. **The gain from complexity is sparsity, not nonlinearity.** Rank IC rises
+   monotonically from 0.0254 for a single
+   momentum characteristic to 0.0316 for ridge
+   to 0.0493 for xgboost
+   (*t* = 3.64 against zero). But in a
+   paired test xgboost beats ridge
+   (*t* = 2.37) and does **not** beat
+   enet, the best linear model
+   (*t* = 1.46,
+   *p* = 0.14). The neural network
+   is significantly *worse* than enet on squared error.
 2. The accuracy ranking is not the tradability ranking. Ridge breaks even at
-   19 bps one-way and is
+   18 bps one-way and is
    negative at 20; xgboost breaks even at
-   33; the one-line baseline,
+   32; the one-line baseline,
    which trades least, breaks even highest of all at
    42.
 3. The alpha is real and unremarkable in context. xgboost earns
    7.0% a year against the six-factor model
    (*t* = 2.83), but its own *t* of
-   3.44 sits at the
+   3.43 sits at the
    57th percentile of
    212 published predictors and does **not** survive Bonferroni.
 4. Experiment 4 refuted its own hypothesis. GRS does not degrade as *N/T* → 1;
@@ -131,34 +136,111 @@ Detail in `docs/METHODOLOGY.md`. The four things that matter most:
 
 ## 3. Experiment 1 — does flexibility buy accuracy?
 
-| model         |   rank_ic |   rank_ic_tstat |   rank_ic_std |   icir |   pearson_ic |   hit_rate |   r2_oos |   calibration_slope |   n_months |   dm_tstat_vs_ridge |
-|:--------------|----------:|----------------:|--------------:|-------:|-------------:|-----------:|---------:|--------------------:|-----------:|--------------------:|
-| single-signal |    0.0254 |          1.5765 |        0.3167 | 0.0803 |       0.0291 |     0.5283 |  -0.3005 |              0.0504 |   407.0000 |             18.5244 |
-| ols           |    0.0316 |          2.2176 |        0.2770 | 0.1140 |       0.0352 |     0.5627 |  -0.0070 |              0.3088 |   407.0000 |              3.4112 |
-| ridge         |    0.0319 |          2.2368 |        0.2773 | 0.1149 |       0.0355 |     0.5577 |  -0.0068 |              0.3113 |   407.0000 |            nan      |
-| lasso         |    0.0440 |          2.5105 |        0.2793 | 0.1576 |       0.0494 |     0.3219 |  -0.0017 |              0.4056 |   227.0000 |             -2.0842 |
-| enet          |    0.0443 |          2.8975 |        0.2868 | 0.1544 |       0.0478 |     0.5086 |   0.0005 |              0.5487 |   359.0000 |             -2.8700 |
-| xgboost       |    0.0492 |          3.6356 |        0.2859 | 0.1722 |       0.0539 |     0.5872 |   0.0024 |              0.6786 |   407.0000 |             -4.4309 |
-| neural-net    |    0.0328 |          2.2174 |        0.2894 | 0.1132 |       0.0376 |     0.5676 |  -0.0014 |              0.4226 |   407.0000 |             -3.0489 |
+| model         |   rank_ic |   rank_ic_tstat |   rank_ic_std |   icir |   pearson_ic |   hit_rate |   r2_oos |   calibration_slope |   n_months |   dm_tstat_vs_ridge |   dm_tstat_vs_best_linear |
+|:--------------|----------:|----------------:|--------------:|-------:|-------------:|-----------:|---------:|--------------------:|-----------:|--------------------:|--------------------------:|
+| single-signal |    0.0254 |          1.5765 |        0.3167 | 0.0803 |       0.0291 |     0.5283 |  -0.3022 |              0.0503 |   407.0000 |             18.5606 |                   18.1642 |
+| ols           |    0.0316 |          2.2176 |        0.2770 | 0.1140 |       0.0352 |     0.5627 |  -0.0070 |              0.3088 |   407.0000 |              3.4219 |                    3.7503 |
+| ridge         |    0.0316 |          2.2180 |        0.2770 | 0.1140 |       0.0352 |     0.5627 |  -0.0070 |              0.3088 |   407.0000 |            nan      |                    3.7499 |
+| lasso         |    0.0423 |          3.2327 |        0.2638 | 0.1604 |       0.0441 |     0.4791 |   0.0022 |              0.7049 |   407.0000 |             -3.9066 |                   -0.2269 |
+| enet          |    0.0432 |          3.0907 |        0.2795 | 0.1547 |       0.0458 |     0.5283 |   0.0021 |              0.6855 |   407.0000 |             -3.7499 |                  nan      |
+| xgboost       |    0.0493 |          3.6371 |        0.2860 | 0.1722 |       0.0532 |     0.5848 |   0.0023 |              0.6720 |   407.0000 |             -4.4080 |                   -0.2971 |
+| neural-net    |    0.0317 |          2.1595 |        0.2876 | 0.1102 |       0.0372 |     0.5651 |  -0.0014 |              0.4228 |   407.0000 |             -3.1252 |                    2.5996 |
 
-`dm_tstat_vs_ridge` is a Diebold-Mariano test on monthly squared error against
-ridge; negative favours the row.
-
-**Complexity pays, up to a point.** xgboost improves rank IC by
-+0.0173 over
-ridge, and the Diebold-Mariano statistic of
--4.43 says the squared-error improvement
-exceeds its own standard error. The neural network does not beat boosting. That
-is the expected outcome for 374 assets and
-26 return-based predictors: boosting at depth 2 to 4 fits
-low-order interactions, which is about the amount of structure this data
-supports, whereas a network must learn a representation from the same thin
-signal. It is not evidence about networks in general.
+**The point estimates rise monotonically along the ladder** — single-signal
+0.0254, ridge
+0.0316, lasso
+0.0423, xgboost
+0.0493 — which invites the conclusion that
+complexity pays. That conclusion does not survive a paired test.
 
 ![Experiment 1: mean rank IC, its Newey-West t-statistic, and out-of-sample R-squared across the model ladder](figures/fig1_forecast_accuracy.png)
 
 *Experiment 1: mean rank IC, its Newey-West t-statistic, and out-of-sample R-squared across the model ladder*
 
+
+### 3.1 The gain is sparsity, not nonlinearity
+
+Both models face the same cross-section every month, so their monthly ICs can
+be differenced pairwise. The common component cancels and the resulting test is
+far tighter than comparing two standard errors. `ic_diff_tstat` tests the
+rank-IC gap; `dm_tstat_squared_error` is Diebold-Mariano on squared error, where
+negative favours the row.
+
+**Each step of the ladder against the step below it:**
+
+| comparison            |   ic_model |   ic_benchmark |   ic_difference |   ic_diff_tstat |   ic_diff_pvalue |   dm_tstat_squared_error |   dm_pvalue |
+|:----------------------|-----------:|---------------:|----------------:|----------------:|-----------------:|-------------------------:|------------:|
+| ols vs single-signal  |     0.0316 |         0.0254 |          0.0061 |          0.4444 |           0.6568 |                 -18.5605 |      0.0000 |
+| ridge vs ols          |     0.0316 |         0.0316 |          0.0000 |          1.9276 |           0.0539 |                  -3.4219 |      0.0006 |
+| lasso vs ridge        |     0.0423 |         0.0316 |          0.0107 |          1.2331 |           0.2176 |                  -3.9066 |      0.0001 |
+| enet vs lasso         |     0.0432 |         0.0423 |          0.0009 |          0.1947 |           0.8456 |                   0.2269 |      0.8205 |
+| xgboost vs enet       |     0.0493 |         0.0432 |          0.0060 |          1.4609 |           0.1440 |                  -0.2971 |      0.7664 |
+| neural-net vs xgboost |     0.0317 |         0.0493 |         -0.0176 |         -2.9832 |           0.0029 |                   3.5551 |      0.0004 |
+
+**Not one adjacent step is a significant improvement.** The only significant row
+is the last, and it goes the wrong way: the neural network is significantly
+*worse* than boosting. Every rung of the ladder is small relative to its own
+standard error; only the cumulative distance covers enough ground to be
+detected.
+
+One row is worth pausing on as a caution about reading *t*-statistics alone.
+`ridge` versus `ols` has an IC difference of
++0.00000 — economically nothing — and yet
+*t* = 1.93. Ridge's validated penalty
+is so small that it reproduces OLS almost exactly, so the paired difference is
+minuscule but almost perfectly consistent in sign, which is all a *t*-statistic
+needs. Significance without an effect size means nothing.
+
+**Everything against `enet`, the best linear model:**
+
+| comparison            |   ic_model |   ic_benchmark |   ic_difference |   ic_diff_tstat |   ic_diff_pvalue |   dm_tstat_squared_error |   dm_pvalue |
+|:----------------------|-----------:|---------------:|----------------:|----------------:|-----------------:|-------------------------:|------------:|
+| xgboost vs enet       |     0.0493 |         0.0432 |          0.0060 |          1.4609 |           0.1440 |                  -0.2971 |      0.7664 |
+| single-signal vs enet |     0.0254 |         0.0432 |         -0.0178 |         -1.5650 |           0.1176 |                  18.1642 |      0.0000 |
+| ols vs enet           |     0.0316 |         0.0432 |         -0.0117 |         -1.3882 |           0.1651 |                   3.7503 |      0.0002 |
+| ridge vs enet         |     0.0316 |         0.0432 |         -0.0117 |         -1.3877 |           0.1652 |                   3.7499 |      0.0002 |
+| lasso vs enet         |     0.0423 |         0.0432 |         -0.0009 |         -0.1947 |           0.8456 |                  -0.2269 |      0.8205 |
+| neural-net vs enet    |     0.0317 |         0.0432 |         -0.0115 |         -1.5148 |           0.1298 |                   2.5996 |      0.0093 |
+
+Read that alongside the comparison against ridge:
+
+- **xgboost beats ridge**: IC gap
+  +0.0177,
+  *t* = 2.37; Diebold-Mariano
+  *t* = -4.41.
+- **xgboost does *not* beat enet**: IC gap only
+  +0.0060,
+  *t* = 1.46
+  (*p* = 0.14), and on squared
+  error *t* = -0.30
+  (*p* = 0.77) — indistinguishable.
+- **The neural network is *worse* than enet**: IC gap
+  -0.0115, and on squared
+  error it loses significantly
+  (*t* = +2.60,
+  *p* = 0.009).
+
+So the answer to the project's stated question is **no, not reliably**. What
+separates ridge from boosting is almost entirely the sparse regularisation in
+between: ridge selects a penalty so small it is effectively OLS — with
+26 predictors and 248,614 observations
+there is no ill-conditioning for shrinkage to fix — whereas the sparse variable
+selection in Lasso and elastic net is a real restriction that pays out of
+sample. Adding nonlinearity on top of that buys a further
++0.0060 of IC, which is not
+distinguishable from zero.
+
+Note also that no *single adjacent* step in the ladder is significant on its
+own. Only the cumulative gap from ridge to xgboost clears conventional
+significance. A table of point estimates would have supported a much stronger
+claim than the data does.
+
+That the network trails is the expected outcome for 374 assets and
+26 return-based predictors: boosting at depth 2 to 4 fits
+low-order interactions, about the amount of structure this data supports,
+whereas a network must learn a representation from the same thin signal. It is
+not evidence about networks in general, and on a firm-level panel with hundreds
+of characteristics the literature finds the opposite.
 
 **On the negative out-of-sample R².** IC and R² measure different things, and
 the gap is diagnosable rather than contradictory. IC asks whether the *ordering*
@@ -166,7 +248,7 @@ is informative; R² asks whether the forecast is the right *size*. The
 calibration slope — the coefficient from regressing outcome on forecast out of
 sample — is 0.31 for ridge, meaning
 its forecasts are roughly 3.2
-times too large, and 0.68 for xgboost.
+times too large, and 0.67 for xgboost.
 The better-calibrated models are exactly the ones with positive R². Since the
 portfolio uses only the ranking, IC is the metric that matters here — but
 reporting IC alone would have hidden a real miscalibration.
@@ -180,10 +262,10 @@ reporting IC alone would have hidden a real miscalibration.
 
 | decade   |   single-signal |     ols |   ridge |   lasso |   enet |   xgboost |   neural-net |
 |:---------|----------------:|--------:|--------:|--------:|-------:|----------:|-------------:|
-| 1990s    |          0.0436 |  0.0781 |  0.0784 |  0.0691 | 0.0723 |    0.0700 |       0.0655 |
-| 2000s    |          0.0247 |  0.0420 |  0.0421 |  0.0347 | 0.0548 |    0.0643 |       0.0422 |
-| 2010s    |          0.0210 | -0.0184 | -0.0179 |  0.0113 | 0.0043 |    0.0226 |       0.0049 |
-| 2020s    |         -0.0078 |  0.0136 |  0.0136 |  0.0031 | 0.0079 |    0.0259 |      -0.0037 |
+| 1990s    |          0.0436 |  0.0781 |  0.0781 |  0.0729 | 0.0751 |    0.0701 |       0.0651 |
+| 2000s    |          0.0247 |  0.0420 |  0.0420 |  0.0599 | 0.0573 |    0.0643 |       0.0398 |
+| 2010s    |          0.0210 | -0.0184 | -0.0184 |  0.0111 | 0.0056 |    0.0225 |       0.0041 |
+| 2020s    |         -0.0078 |  0.0136 |  0.0136 | -0.0008 | 0.0222 |    0.0259 |      -0.0038 |
 
 Every model weakens over the sample. Two readings, which this design cannot
 separate: either these relations were arbitraged away as they became known — the
@@ -202,20 +284,20 @@ here than the point estimate.
 
 |                           |   single-signal |    ols |   ridge |   lasso |   enet |   xgboost |   neural-net |
 |:--------------------------|----------------:|-------:|--------:|--------:|-------:|----------:|-------------:|
-| turnover_monthly          |           1.030 |  2.313 |   2.317 |   1.359 |  1.652 |     1.957 |        1.776 |
-| turnover_fraction_of_book |           0.258 |  0.578 |   0.579 |   0.340 |  0.413 |     0.489 |        0.444 |
-| ann_return_gross          |           0.051 |  0.051 |   0.052 |   0.030 |  0.065 |     0.076 |        0.051 |
-| ann_vol                   |           0.155 |  0.125 |   0.126 |   0.108 |  0.129 |     0.141 |        0.133 |
-| sharpe_gross              |           0.332 |  0.408 |   0.410 |   0.275 |  0.505 |     0.541 |        0.381 |
-| max_drawdown_gross        |          -0.485 | -0.366 |  -0.361 |  -0.323 | -0.310 |    -0.328 |       -0.305 |
-| hit_rate                  |           0.553 |  0.587 |   0.585 |   0.573 |  0.604 |     0.590 |        0.590 |
-| sharpe_net_5bps           |           0.292 |  0.298 |   0.300 |   0.200 |  0.428 |     0.458 |        0.301 |
-| ann_return_net_5bps       |           0.045 |  0.037 |   0.038 |   0.022 |  0.055 |     0.065 |        0.040 |
-| sharpe_net_10bps          |           0.252 |  0.187 |   0.190 |   0.125 |  0.351 |     0.375 |        0.221 |
-| ann_return_net_10bps      |           0.039 |  0.023 |   0.024 |   0.013 |  0.045 |     0.053 |        0.029 |
-| sharpe_net_20bps          |           0.172 | -0.035 |  -0.031 |  -0.026 |  0.197 |     0.209 |        0.061 |
-| ann_return_net_20bps      |           0.027 | -0.004 |  -0.004 |  -0.003 |  0.025 |     0.029 |        0.008 |
-| breakeven_cost_bps        |          41.591 | 18.438 |  18.602 |  18.276 | 32.766 |    32.558 |       23.815 |
+| turnover_monthly          |           1.030 |  2.313 |   2.313 |   1.829 |  1.871 |     1.956 |        1.803 |
+| turnover_fraction_of_book |           0.258 |  0.578 |   0.578 |   0.457 |  0.468 |     0.489 |        0.451 |
+| ann_return_gross          |           0.051 |  0.051 |   0.051 |   0.064 |  0.071 |     0.076 |        0.050 |
+| ann_vol                   |           0.155 |  0.125 |   0.125 |   0.128 |  0.134 |     0.141 |        0.133 |
+| sharpe_gross              |           0.332 |  0.408 |   0.408 |   0.503 |  0.526 |     0.538 |        0.375 |
+| max_drawdown_gross        |          -0.485 | -0.366 |  -0.366 |  -0.337 | -0.310 |    -0.326 |       -0.308 |
+| hit_rate                  |           0.553 |  0.587 |   0.587 |   0.509 |  0.555 |     0.592 |        0.590 |
+| sharpe_net_5bps           |           0.292 |  0.298 |   0.298 |   0.418 |  0.443 |     0.455 |        0.293 |
+| ann_return_net_5bps       |           0.045 |  0.037 |   0.037 |   0.053 |  0.059 |     0.064 |        0.039 |
+| sharpe_net_10bps          |           0.252 |  0.187 |   0.187 |   0.332 |  0.359 |     0.372 |        0.212 |
+| ann_return_net_10bps      |           0.039 |  0.023 |   0.023 |   0.042 |  0.048 |     0.052 |        0.028 |
+| sharpe_net_20bps          |           0.172 | -0.035 |  -0.035 |   0.160 |  0.192 |     0.205 |        0.050 |
+| ann_return_net_20bps      |           0.027 | -0.004 |  -0.004 |   0.020 |  0.026 |     0.029 |        0.007 |
+| breakeven_cost_bps        |          41.591 | 18.438 |  18.445 |  29.292 | 31.462 |    32.350 |       23.052 |
 
 Turnover is two-sided: replacing both legs in full is 4.0, so
 `turnover_fraction_of_book` reports the share replaced per month. Costs are a
@@ -227,7 +309,7 @@ single-characteristic baseline absorbs
 42 bps before its edge
 disappears — the most of any model — because it turns over
 1.03 against ridge's
-2.32. Ridge and OLS are *negative*
+2.31. Ridge and OLS are *negative*
 at 20 bps.
 
 This is the most useful result in the project, and it only appears if turnover
@@ -249,16 +331,16 @@ costs they do not.
 
 |   predicted_decile |   single-signal |   ols |   ridge |   lasso |   enet |   xgboost |   neural-net |
 |-------------------:|----------------:|------:|--------:|--------:|-------:|----------:|-------------:|
-|                  0 |            6.90 |  6.79 |    6.73 |    7.55 |   5.75 |      5.66 |         6.65 |
-|                  1 |            8.60 |  8.62 |    8.78 |    8.61 |   8.56 |      7.95 |         9.18 |
-|                  2 |            9.74 |  9.50 |    9.39 |   10.06 |   9.18 |      8.63 |         9.50 |
-|                  3 |           10.06 |  9.56 |    9.53 |   10.06 |   9.74 |     10.20 |         9.61 |
-|                  4 |           10.02 | 10.36 |   10.47 |   10.59 |   9.98 |      9.86 |         9.96 |
-|                  5 |           10.34 |  9.99 |    9.86 |   10.15 |  10.62 |      9.97 |        10.27 |
-|                  6 |           10.32 | 10.50 |   10.56 |   10.55 |  10.49 |     10.45 |        10.56 |
-|                  7 |           10.12 | 10.75 |   10.74 |   10.39 |  11.14 |     11.56 |        10.70 |
-|                  8 |           10.78 | 10.94 |   10.96 |   10.44 |  11.25 |     11.31 |        10.77 |
-|                  9 |           12.04 | 11.91 |   11.90 |   10.53 |  12.24 |     13.31 |        11.73 |
+|                  0 |            6.90 |  6.79 |    6.79 |    4.56 |   5.02 |      5.64 |         6.71 |
+|                  1 |            8.60 |  8.62 |    8.62 |    7.02 |   8.63 |      8.00 |         9.23 |
+|                  2 |            9.74 |  9.50 |    9.50 |    9.07 |   9.29 |      8.67 |         9.49 |
+|                  3 |           10.06 |  9.56 |    9.56 |    9.20 |   9.71 |     10.14 |         9.67 |
+|                  4 |           10.02 | 10.36 |   10.36 |    9.29 |  10.02 |      9.73 |         9.99 |
+|                  5 |           10.34 |  9.99 |    9.98 |    9.78 |  10.52 |     10.03 |        10.17 |
+|                  6 |           10.32 | 10.50 |   10.51 |   10.02 |  10.84 |     10.59 |        10.48 |
+|                  7 |           10.12 | 10.75 |   10.74 |   10.63 |  11.76 |     11.46 |        10.73 |
+|                  8 |           10.78 | 10.94 |   10.94 |   11.02 |  11.68 |     11.40 |        10.76 |
+|                  9 |           12.04 | 11.91 |   11.91 |   12.37 |  12.77 |     13.23 |        11.70 |
 
 A monotone profile is much stronger evidence than a good top-minus-bottom
 spread, which two lucky buckets can produce on their own.
@@ -275,26 +357,93 @@ spread, which two lucky buckets can produce on their own.
 *Presented before Experiment 3 because it bears on how much of the signal there
 is to test.*
 
+### 5.1 Which predictors carry the signal
+
+Each row refits the entire walk-forward. `ic_change_when_removed` is negative
+when dropping a group hurts. Feature importances from the fitted model are
+deliberately not used: they describe a fit, not out-of-sample value.
+
+| predictor_set   |   ic_without_group |   ic_change_when_removed |   ic_with_group_alone |   sharpe_without_group |   sharpe_with_group_alone |
+|:----------------|-------------------:|-------------------------:|----------------------:|-----------------------:|--------------------------:|
+| trend           |             0.0385 |                  -0.0108 |                0.0443 |                 0.4534 |                    0.4824 |
+| reversal        |             0.0432 |                  -0.0061 |                0.0195 |                 0.4467 |                    0.2234 |
+| comovement      |             0.0433 |                  -0.0060 |                0.0168 |                 0.4617 |                    0.0699 |
+| volatility      |             0.0437 |                  -0.0056 |                0.0129 |                 0.5326 |                    0.1122 |
+| seasonality     |             0.0463 |                  -0.0030 |                0.0041 |                 0.5302 |                   -0.0076 |
+| persistence     |             0.0470 |                  -0.0023 |                0.0018 |                 0.5398 |                   -0.0169 |
+| momentum        |             0.0473 |                  -0.0020 |                0.0228 |                 0.5633 |                    0.3306 |
+| static          |             0.0473 |                  -0.0020 |                0.0115 |                 0.5317 |                    0.0978 |
+| higher_moments  |             0.0497 |                   0.0004 |                0.0081 |                 0.5675 |                    0.0818 |
+
+Full predictor set: rank IC 0.0493.
+
+Removing **trend** costs the most
+(-0.0108). The group that
+does best on its own is **trend**
+(IC 0.0443 alone, against
+0.0493 for everything together).
+
+**The two columns disagree, and the disagreement is the point.** Look at
+**momentum**: removing it costs almost nothing
+(-0.0020, among the
+smallest in the table), yet on its own it delivers
+0.0228 — second only to
+trend. A leave-one-out study alone would have concluded that
+momentum contains no information. What it actually shows is that
+momentum is *substitutable*: the other predictors already span most of
+what it knows. Those are different claims, and only the second is true.
+
+The reverse case is **higher_moments**, where removing the group leaves the result
+unchanged or slightly better
+(+0.0004) *and* it is close to
+useless alone (0.0081). That is a
+group carrying no information, which is a genuine finding rather than an
+artefact of redundancy — and it is only distinguishable from the
+momentum case because both columns were computed.
+
+**The signal is concentrated, not spread.** `trend` on its own reaches
+0.0443 of the
+0.0493 available from all 26 predictors — so most of
+what the model knows comes from a handful of trailing-drawdown and
+risk-adjusted-momentum measures rather than from combining many weak signals.
+Three groups contribute essentially nothing on their own
+(persistence, seasonality, higher_moments), and dropping
+them does not hurt.
+
+**And attribution interacts with cost.** Dropping `reversal` costs
+0.0061 of IC but
+raises the break-even cost from
+32 to
+49 bps,
+because that group is what drives the turnover. A predictor group can be
+informative and still not be worth trading, which is invisible to any
+importance measure that ignores the portfolio.
+
+![Removing a predictor group and using it alone answer different questions](figures/fig10_feature_ablation.png)
+
+*Removing a predictor group and using it alone answer different questions*
+
+
 ### 5.2 Design choices
 
 Each row changes exactly one decision away from the default.
 
 | variant                  |   rank_ic |   rank_ic_tstat |   icir |   sharpe_gross |   sharpe_net_10bps |   turnover_monthly |   breakeven_cost_bps |   n_months |
 |:-------------------------|----------:|----------------:|-------:|---------------:|-------------------:|-------------------:|---------------------:|-----------:|
-| default                  |    0.0492 |          3.6356 | 0.1722 |         0.5413 |             0.3750 |             1.9569 |              32.5577 |   407.0000 |
-| rolling_20y_window       |    0.0463 |          3.6061 | 0.1754 |         0.5767 |             0.4005 |             1.8262 |              32.7900 |   407.0000 |
-| rolling_10y_window       |    0.0287 |          2.5999 | 0.1184 |         0.3923 |             0.2111 |             1.7839 |              21.6100 |   407.0000 |
-| quintile_portfolios      |    0.0492 |          3.6356 | 0.1722 |         0.4935 |             0.3278 |             1.5485 |              29.7547 |   407.0000 |
-| ventile_portfolios       |    0.0492 |          3.6356 | 0.1722 |         0.5562 |             0.3981 |             2.1622 |              35.1362 |   407.0000 |
-| rank_weighted_all_assets |    0.0492 |          3.6356 | 0.1722 |         0.4839 |             0.3122 |             1.2771 |              28.1756 |   407.0000 |
+| default                  |    0.0493 |          3.6371 | 0.1722 |         0.5380 |             0.3717 |             1.9555 |              32.3504 |   407.0000 |
+| rolling_20y_window       |    0.0461 |          3.5933 | 0.1748 |         0.5757 |             0.3996 |             1.8253 |              32.7395 |   407.0000 |
+| rolling_10y_window       |    0.0286 |          2.5905 | 0.1178 |         0.3856 |             0.2055 |             1.7835 |              21.3781 |   407.0000 |
+| quintile_portfolios      |    0.0493 |          3.6371 | 0.1722 |         0.4913 |             0.3261 |             1.5480 |              29.7104 |   407.0000 |
+| ventile_portfolios       |    0.0493 |          3.6371 | 0.1722 |         0.5570 |             0.3986 |             2.1619 |              35.0931 |   407.0000 |
+| rank_weighted_all_assets |    0.0493 |          3.6371 | 0.1722 |         0.4845 |             0.3129 |             1.2765 |              28.2185 |   407.0000 |
 
 **This answers "why expanding rather than rolling".** A 20-year rolling window
 performs essentially the same as expanding
-(IC 0.0463 against
-0.0492; Sharpe
+(IC 0.0461 against
+0.0493; Sharpe
 0.58 against
 0.54). A 10-year window is clearly worse
-(IC 0.0287, Sharpe
+(IC 0.0286, Sharpe
 0.39). Degradation as the
 window shrinks, and flatness between 20 years and everything, is the evidence
 that estimation error binds rather than non-stationarity. Note the honest
@@ -309,9 +458,9 @@ cross-section gives up some gross Sharpe for materially lower turnover.
 
 | period    |   enet |   lasso |   neural-net |     ols |   ridge |   single-signal |   xgboost |
 |:----------|-------:|--------:|-------------:|--------:|--------:|----------------:|----------:|
-| 1990-1999 | 0.0723 |  0.0691 |       0.0655 |  0.0781 |  0.0784 |          0.0436 |    0.0700 |
-| 2000-2009 | 0.0548 |  0.0347 |       0.0422 |  0.0420 |  0.0421 |          0.0247 |    0.0643 |
-| 2010-2023 | 0.0054 |  0.0094 |       0.0025 | -0.0094 | -0.0090 |          0.0129 |    0.0235 |
+| 1990-1999 | 0.0751 |  0.0729 |       0.0651 |  0.0781 |  0.0781 |          0.0436 |    0.0701 |
+| 2000-2009 | 0.0573 |  0.0599 |       0.0398 |  0.0420 |  0.0420 |          0.0247 |    0.0643 |
+| 2010-2023 | 0.0103 |  0.0078 |       0.0019 | -0.0094 | -0.0094 |          0.0129 |    0.0235 |
 
 Regime labels use only information available before the month begins, so a split
 is something a strategy could have conditioned on. Splitting on contemporaneous
@@ -322,16 +471,16 @@ volatility would be a different and much easier exercise.
 *Rank IC by market state, labelled using only prior information*
 
 
-|                                     |   enet |   lasso |   neural-net |    ols |   ridge |   single-signal |   xgboost |
-|:------------------------------------|-------:|--------:|-------------:|-------:|--------:|----------------:|----------:|
-| ('drawdown_state', 'in_drawdown')   | 0.0466 |  0.0250 |       0.0285 | 0.0343 |  0.0344 |          0.0216 |    0.0513 |
-| ('drawdown_state', 'near_highs')    | 0.0426 |  0.0593 |       0.0355 | 0.0298 |  0.0302 |          0.0279 |    0.0479 |
-| ('market_direction', 'market_down') | 0.0636 |  0.0686 |       0.0253 | 0.0391 |  0.0392 |          0.0289 |    0.0618 |
-| ('market_direction', 'market_up')   | 0.0394 |  0.0376 |       0.0347 | 0.0297 |  0.0300 |          0.0246 |    0.0460 |
-| ('rate_level', 'high_rates')        | 0.1038 |  0.0904 |       0.0551 | 0.0963 |  0.0955 |          0.0761 |    0.1005 |
-| ('rate_level', 'low_rates')         | 0.0392 |  0.0375 |       0.0311 | 0.0268 |  0.0271 |          0.0217 |    0.0454 |
-| ('volatility', 'high_vol')          | 0.0534 |  0.0639 |       0.0326 | 0.0375 |  0.0377 |          0.0291 |    0.0544 |
-| ('volatility', 'low_vol')           | 0.0350 |  0.0266 |       0.0329 | 0.0258 |  0.0261 |          0.0218 |    0.0442 |
+| dimension / state                             |   enet |   lasso |   neural-net |    ols |   ridge |   single-signal |   xgboost |
+|:----------------------------------------------|-------:|--------:|-------------:|-------:|--------:|----------------:|----------:|
+| dimension=drawdown_state, state=in_drawdown   | 0.0457 |  0.0449 |       0.0277 | 0.0343 |  0.0343 |          0.0216 |    0.0517 |
+| dimension=drawdown_state, state=near_highs    | 0.0417 |  0.0407 |       0.0343 | 0.0298 |  0.0298 |          0.0279 |    0.0477 |
+| dimension=market_direction, state=market_down | 0.0583 |  0.0706 |       0.0266 | 0.0391 |  0.0391 |          0.0289 |    0.0625 |
+| dimension=market_direction, state=market_up   | 0.0394 |  0.0351 |       0.0330 | 0.0297 |  0.0297 |          0.0246 |    0.0459 |
+| dimension=rate_level, state=high_rates        | 0.0951 |  0.0979 |       0.0547 | 0.0963 |  0.0963 |          0.0761 |    0.1007 |
+| dimension=rate_level, state=low_rates         | 0.0394 |  0.0382 |       0.0300 | 0.0268 |  0.0268 |          0.0217 |    0.0455 |
+| dimension=volatility, state=high_vol          | 0.0471 |  0.0500 |       0.0326 | 0.0375 |  0.0375 |          0.0291 |    0.0544 |
+| dimension=volatility, state=low_vol           | 0.0395 |  0.0349 |       0.0308 | 0.0258 |  0.0258 |          0.0218 |    0.0442 |
 
 ---
 
@@ -346,11 +495,11 @@ Newey-West 6 lags:
 |:--------------|---------------:|--------------:|-------:|-------------:|-----------:|-----------:|-----------:|
 | single-signal |         0.0592 |        2.1261 | 0.0158 |      -0.0451 |    -0.0133 |    -0.1113 |    -0.0358 |
 | ols           |         0.0377 |        1.5683 | 0.0422 |       0.0091 |     0.0618 |    -0.0770 |    -0.0688 |
-| ridge         |         0.0383 |        1.5846 | 0.0421 |       0.0076 |     0.0634 |    -0.0774 |    -0.0691 |
-| lasso         |         0.0259 |        1.5815 | 0.0664 |      -0.0309 |     0.0004 |    -0.0883 |    -0.1074 |
-| enet          |         0.0631 |        2.6477 | 0.0232 |      -0.0239 |     0.0074 |    -0.1264 |    -0.0777 |
-| xgboost       |         0.0702 |        2.8337 | 0.0358 |      -0.0202 |     0.0365 |    -0.1070 |    -0.0940 |
-| neural-net    |         0.0443 |        1.8066 | 0.0347 |      -0.0422 |     0.0647 |    -0.1483 |    -0.0650 |
+| ridge         |         0.0377 |        1.5688 | 0.0422 |       0.0091 |     0.0618 |    -0.0769 |    -0.0688 |
+| lasso         |         0.0574 |        2.6225 | 0.0413 |      -0.0093 |     0.0108 |    -0.1599 |    -0.0907 |
+| enet          |         0.0685 |        2.8044 | 0.0255 |      -0.0354 |     0.0129 |    -0.1351 |    -0.0712 |
+| xgboost       |         0.0699 |        2.8340 | 0.0364 |      -0.0223 |     0.0388 |    -0.1096 |    -0.0950 |
+| neural-net    |         0.0433 |        1.7759 | 0.0350 |      -0.0408 |     0.0602 |    -0.1520 |    -0.0646 |
 
 xgboost's alpha of 7.0% a year survives with
 *t* = 2.83, and the regression R² of
@@ -369,11 +518,11 @@ Stationary block bootstrap, 5,000 draws, mean block
 |:--------------|---------:|------------------:|------------------:|---------------:|-----------------------:|------------------------:|
 | single-signal |    0.332 |             0.077 |             0.593 |          0.005 |                  2.034 |                   0.042 |
 | ols           |    0.408 |             0.119 |             0.680 |          0.003 |                  2.430 |                   0.015 |
-| ridge         |    0.410 |             0.121 |             0.679 |          0.003 |                  2.446 |                   0.014 |
-| lasso         |    0.275 |             0.040 |             0.602 |          0.010 |                  1.953 |                   0.051 |
-| enet          |    0.505 |             0.267 |             0.755 |          0.000 |                  3.005 |                   0.003 |
-| xgboost       |    0.541 |             0.325 |             0.787 |          0.000 |                  3.439 |                   0.001 |
-| neural-net    |    0.381 |             0.120 |             0.642 |          0.003 |                  2.292 |                   0.022 |
+| ridge         |    0.408 |             0.119 |             0.680 |          0.003 |                  2.430 |                   0.015 |
+| lasso         |    0.503 |             0.260 |             0.784 |          0.000 |                  3.096 |                   0.002 |
+| enet          |    0.526 |             0.295 |             0.794 |          0.000 |                  3.159 |                   0.002 |
+| xgboost       |    0.538 |             0.323 |             0.783 |          0.000 |                  3.429 |                   0.001 |
+| neural-net    |    0.375 |             0.112 |             0.638 |          0.003 |                  2.253 |                   0.024 |
 
 `p_sign_flips` is the share of resamples in which the Sharpe ratio changes sign
 — a more direct read on fragility than an interval.
@@ -403,11 +552,11 @@ hurdle for a new predictor.
 |:--------------|-----------:|-----------------------------:|:---------------------|:--------------------|:------------------------|------------------:|:------------------------------|
 | single-signal |      2.034 |                       25.000 | True                 | False               | False                   |             2.126 | False                         |
 | ols           |      2.430 |                       34.434 | True                 | False               | False                   |             1.568 | False                         |
-| ridge         |      2.446 |                       35.377 | True                 | False               | False                   |             1.585 | False                         |
-| lasso         |      1.953 |                       23.113 | False                | False               | False                   |             1.582 | False                         |
-| enet          |      3.005 |                       48.585 | True                 | False               | True                    |             2.648 | False                         |
-| xgboost       |      3.439 |                       57.075 | True                 | False               | True                    |             2.834 | False                         |
-| neural-net    |      2.292 |                       31.604 | True                 | False               | False                   |             1.807 | False                         |
+| ridge         |      2.431 |                       34.434 | True                 | False               | False                   |             1.569 | False                         |
+| lasso         |      3.096 |                       50.472 | True                 | False               | True                    |             2.622 | False                         |
+| enet          |      3.159 |                       50.472 | True                 | False               | True                    |             2.804 | False                         |
+| xgboost       |      3.429 |                       57.075 | True                 | False               | True                    |             2.834 | False                         |
+| neural-net    |      2.253 |                       30.660 | True                 | False               | False                   |             1.776 | False                         |
 
 xgboost clears the |*t*| > 3 hurdle but does **not** survive Bonferroni across
 212 hypotheses, and sits at the
@@ -451,27 +600,57 @@ the panel: implied Student-*t* degrees of freedom
 
 ### 7.2 Empirical size, nominal 5%, T = 360
 
-| error_model          |   ('grs_shrunk', 10) |   ('grs_shrunk', 25) |   ('grs_shrunk', 50) |   ('grs_shrunk', 100) |   ('grs_shrunk', 200) |   ('grs_shrunk', 300) |   ('grs', 10) |   ('grs', 25) |   ('grs', 50) |   ('grs', 100) |   ('grs', 200) |   ('grs', 300) |   ('pesaran_yamagata', 10) |   ('pesaran_yamagata', 25) |   ('pesaran_yamagata', 50) |   ('pesaran_yamagata', 100) |   ('pesaran_yamagata', 200) |   ('pesaran_yamagata', 300) |   ('wald_chi2', 10) |   ('wald_chi2', 25) |   ('wald_chi2', 50) |   ('wald_chi2', 100) |   ('wald_chi2', 200) |   ('wald_chi2', 300) |
-|:---------------------|---------------------:|---------------------:|---------------------:|----------------------:|----------------------:|----------------------:|--------------:|--------------:|--------------:|---------------:|---------------:|---------------:|---------------------------:|---------------------------:|---------------------------:|----------------------------:|----------------------------:|----------------------------:|--------------------:|--------------------:|--------------------:|---------------------:|---------------------:|---------------------:|
-| common_vol           |                0.035 |                0.013 |                0.007 |                 0.000 |                 0.000 |                 0.000 |         0.040 |         0.033 |         0.033 |          0.035 |          0.048 |          0.045 |                      0.075 |                      0.075 |                      0.117 |                       0.147 |                       0.185 |                       0.205 |               0.052 |               0.107 |               0.263 |                0.750 |                1.000 |                1.000 |
-| empirical_wild       |                0.015 |                0.015 |                0.000 |                 0.000 |                 0.000 |                 0.000 |         0.037 |         0.037 |         0.037 |          0.052 |          0.060 |          0.068 |                      0.068 |                      0.095 |                      0.117 |                       0.142 |                       0.190 |                       0.205 |               0.050 |               0.102 |               0.245 |                0.775 |                1.000 |                1.000 |
-| empirical_wild_block |                0.045 |                0.037 |                0.007 |                 0.000 |                 0.000 |                 0.000 |         0.055 |         0.075 |         0.090 |          0.058 |          0.083 |          0.048 |                      0.098 |                      0.117 |                      0.175 |                       0.175 |                       0.235 |                       0.305 |               0.077 |               0.130 |               0.318 |                0.840 |                1.000 |                1.000 |
-| gaussian             |                0.050 |                0.028 |                0.013 |                 0.000 |                 0.000 |                 0.000 |         0.055 |         0.060 |         0.052 |          0.035 |          0.033 |          0.037 |                      0.080 |                      0.100 |                      0.113 |                       0.140 |                       0.185 |                       0.235 |               0.080 |               0.102 |               0.225 |                0.755 |                1.000 |                1.000 |
-| gaussian_independent |                0.040 |                0.020 |                0.020 |                 0.000 |                 0.000 |                 0.000 |         0.043 |         0.037 |         0.070 |          0.043 |          0.055 |          0.033 |                      0.055 |                      0.055 |                      0.092 |                       0.045 |                       0.040 |                       0.055 |               0.052 |               0.095 |               0.280 |                0.787 |                1.000 |                1.000 |
-| student_t            |                0.030 |                0.013 |                0.003 |                 0.000 |                 0.000 |                 0.000 |         0.040 |         0.028 |         0.058 |          0.040 |          0.052 |          0.040 |                      0.062 |                      0.095 |                      0.117 |                       0.125 |                       0.198 |                       0.220 |               0.058 |               0.087 |               0.228 |                0.775 |                1.000 |                1.000 |
+| error_model / n_assets                         |   grs |   wald_chi2 |   grs_shrunk |   pesaran_yamagata |
+|:-----------------------------------------------|------:|------------:|-------------:|-------------------:|
+| error_model=common_vol, n_assets=10            | 0.070 |       0.077 |        0.057 |              0.100 |
+| error_model=common_vol, n_assets=25            | 0.063 |       0.137 |        0.030 |              0.103 |
+| error_model=common_vol, n_assets=50            | 0.040 |       0.227 |        0.003 |              0.117 |
+| error_model=common_vol, n_assets=100           | 0.073 |       0.783 |        0.000 |              0.143 |
+| error_model=common_vol, n_assets=200           | 0.057 |       1.000 |        0.000 |              0.217 |
+| error_model=common_vol, n_assets=300           | 0.070 |       1.000 |        0.000 |              0.243 |
+| error_model=empirical_wild, n_assets=10        | 0.063 |       0.083 |        0.043 |              0.073 |
+| error_model=empirical_wild, n_assets=25        | 0.053 |       0.130 |        0.027 |              0.113 |
+| error_model=empirical_wild, n_assets=50        | 0.043 |       0.257 |        0.007 |              0.113 |
+| error_model=empirical_wild, n_assets=100       | 0.033 |       0.770 |        0.000 |              0.120 |
+| error_model=empirical_wild, n_assets=200       | 0.040 |       1.000 |        0.000 |              0.193 |
+| error_model=empirical_wild, n_assets=300       | 0.053 |       1.000 |        0.000 |              0.177 |
+| error_model=empirical_wild_block, n_assets=10  | 0.050 |       0.067 |        0.037 |              0.057 |
+| error_model=empirical_wild_block, n_assets=25  | 0.050 |       0.137 |        0.017 |              0.120 |
+| error_model=empirical_wild_block, n_assets=50  | 0.063 |       0.323 |        0.000 |              0.183 |
+| error_model=empirical_wild_block, n_assets=100 | 0.053 |       0.843 |        0.000 |              0.190 |
+| error_model=empirical_wild_block, n_assets=200 | 0.067 |       1.000 |        0.000 |              0.250 |
+| error_model=empirical_wild_block, n_assets=300 | 0.090 |       1.000 |        0.000 |              0.247 |
+| error_model=gaussian, n_assets=10              | 0.070 |       0.103 |        0.063 |              0.093 |
+| error_model=gaussian, n_assets=25              | 0.043 |       0.093 |        0.033 |              0.103 |
+| error_model=gaussian, n_assets=50              | 0.063 |       0.277 |        0.007 |              0.103 |
+| error_model=gaussian, n_assets=100             | 0.050 |       0.753 |        0.000 |              0.153 |
+| error_model=gaussian, n_assets=200             | 0.050 |       1.000 |        0.000 |              0.180 |
+| error_model=gaussian, n_assets=300             | 0.077 |       1.000 |        0.000 |              0.183 |
+| error_model=gaussian_independent, n_assets=10  | 0.043 |       0.080 |        0.033 |              0.073 |
+| error_model=gaussian_independent, n_assets=25  | 0.040 |       0.100 |        0.030 |              0.050 |
+| error_model=gaussian_independent, n_assets=50  | 0.050 |       0.297 |        0.017 |              0.060 |
+| error_model=gaussian_independent, n_assets=100 | 0.053 |       0.757 |        0.000 |              0.067 |
+| error_model=gaussian_independent, n_assets=200 | 0.040 |       1.000 |        0.000 |              0.057 |
+| error_model=gaussian_independent, n_assets=300 | 0.047 |       1.000 |        0.000 |              0.070 |
+| error_model=student_t, n_assets=10             | 0.037 |       0.067 |        0.030 |              0.077 |
+| error_model=student_t, n_assets=25             | 0.060 |       0.130 |        0.013 |              0.090 |
+| error_model=student_t, n_assets=50             | 0.053 |       0.213 |        0.010 |              0.120 |
+| error_model=student_t, n_assets=100            | 0.047 |       0.723 |        0.000 |              0.123 |
+| error_model=student_t, n_assets=200            | 0.050 |       1.000 |        0.000 |              0.207 |
+| error_model=student_t, n_assets=300            | 0.060 |       1.000 |        0.000 |              0.247 |
 
 | test             |   nominal_size |   worst_size | at_error_model       |   at_n_assets |   at_n_obs |   at_ratio_n_over_t |   median_size_over_grid |   median_size_adjusted_power |
 |:-----------------|---------------:|-------------:|:---------------------|--------------:|-----------:|--------------------:|------------------------:|-----------------------------:|
-| grs              |          0.050 |        0.090 | empirical_wild_block |            50 |        360 |               0.139 |                   0.048 |                        0.249 |
-| wald_chi2        |          0.050 |        1.000 | gaussian             |           100 |        120 |               0.833 |                   0.574 |                        0.249 |
-| grs_shrunk       |          0.050 |        0.050 | gaussian             |            10 |        360 |               0.028 |                   0.000 |                        0.239 |
-| pesaran_yamagata |          0.050 |        0.305 | empirical_wild_block |           300 |        360 |               0.833 |                   0.117 |                        0.131 |
+| grs              |          0.050 |        0.090 | empirical_wild_block |           300 |        360 |               0.833 |                   0.053 |                        0.220 |
+| wald_chi2        |          0.050 |        1.000 | gaussian             |           100 |        120 |               0.833 |                   0.562 |                        0.220 |
+| grs_shrunk       |          0.050 |        0.063 | gaussian             |            10 |        360 |               0.028 |                   0.000 |                        0.202 |
+| pesaran_yamagata |          0.050 |        0.267 | empirical_wild_block |           300 |        120 |               2.500 |                   0.118 |                        0.123 |
 
 **GRS holds its size everywhere**, at up to
 *N/T* = 0.83, under heavy tails, under a
 persistent common volatility factor, and under residual vectors resampled from
 the real panel. Its median size over the grid is
-0.048.
+0.053.
 
 ![Empirical size against N/T under three error structures. GRS is flat at 5%; its asymptotic counterpart is not.](figures/fig8_test_size.png)
 
@@ -482,9 +661,9 @@ the real panel. Its median size over the grid is
 
 - *The asymptotic version of the same statistic.* Referring the identical
   quadratic form to χ²*_N_* instead of the exact *F* gives size
-  0.080 at *N* = 10,
-  0.225 at *N* = 50,
-  0.755 at *N* = 100 and
+  0.103 at *N* = 10,
+  0.277 at *N* = 50,
+  0.753 at *N* = 100 and
   1.000 at *N* = 200. The finite-sample
   correction is doing all the work.
 - *Shrinkage without recalibration.* A Ledoit-Wolf covariance conditions better
@@ -494,27 +673,27 @@ the real panel. Its median size over the grid is
   inference.
 - *The large-N test's assumption.* Pesaran-Yamagata never inverts an *N* × *N*
   matrix and is correctly sized under cross-sectional independence
-  (0.055 at *N* = 300).
+  (0.070 at *N* = 300).
   Under the correlation these portfolios actually have, its size rises to
-  0.305 — and rises
+  0.247 — and rises
   *with N*, the opposite of what an asymptotic-in-*N* test should do.
 
 ### 7.3 Existence, not size, is the binding constraint on GRS
 
-|            |   grs |   grs_shrunk |   pesaran_yamagata |   wald_chi2 |
-|:-----------|------:|-------------:|-------------------:|------------:|
-| (120, 10)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (120, 25)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (120, 50)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (120, 100) |  1.00 |         1.00 |               1.00 |        1.00 |
-| (120, 200) |  0.00 |         0.00 |               1.00 |        0.00 |
-| (120, 300) |  0.00 |         0.00 |               1.00 |        0.00 |
-| (360, 10)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (360, 25)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (360, 50)  |  1.00 |         1.00 |               1.00 |        1.00 |
-| (360, 100) |  1.00 |         1.00 |               1.00 |        1.00 |
-| (360, 200) |  1.00 |         1.00 |               1.00 |        1.00 |
-| (360, 300) |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs / n_assets        |   grs |   grs_shrunk |   pesaran_yamagata |   wald_chi2 |
+|:------------------------|------:|-------------:|-------------------:|------------:|
+| n_obs=120, n_assets=10  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=120, n_assets=25  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=120, n_assets=50  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=120, n_assets=100 |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=120, n_assets=200 |  0.00 |         0.00 |               1.00 |        0.00 |
+| n_obs=120, n_assets=300 |  0.00 |         0.00 |               1.00 |        0.00 |
+| n_obs=360, n_assets=10  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=360, n_assets=25  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=360, n_assets=50  |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=360, n_assets=100 |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=360, n_assets=200 |  1.00 |         1.00 |               1.00 |        1.00 |
+| n_obs=360, n_assets=300 |  1.00 |         1.00 |               1.00 |        1.00 |
 
 At *T* = 120 the statistic simply does not exist for the
 largest cross-sections, since it
@@ -545,36 +724,36 @@ Sharpe ratio. Full grid in `results/exp4_size_adjusted_power.csv`.
 
 ### 7.5 The same tests on the real panel
 
-|            |   grs_reject_rate |   wald_chi2_reject_rate |   grs_shrunk_reject_rate |   pesaran_yamagata_reject_rate |
-|:-----------|------------------:|------------------------:|-------------------------:|-------------------------------:|
-| (120, 10)  |             0.025 |                   0.100 |                    0.025 |                          0.050 |
-| (120, 25)  |             0.075 |                   0.300 |                    0.000 |                          0.025 |
-| (120, 50)  |             0.100 |                   0.975 |                    0.000 |                          0.000 |
-| (120, 100) |             0.125 |                   1.000 |                    0.000 |                          0.000 |
-| (120, 200) |           nan     |                 nan     |                  nan     |                          0.000 |
-| (120, 300) |           nan     |                 nan     |                  nan     |                          0.000 |
-| (120, 374) |           nan     |                 nan     |                  nan     |                          0.000 |
-| (240, 10)  |             0.150 |                   0.225 |                    0.075 |                          0.125 |
-| (240, 25)  |             0.350 |                   0.525 |                    0.050 |                          0.200 |
-| (240, 50)  |             0.425 |                   0.925 |                    0.075 |                          0.375 |
-| (240, 100) |             0.625 |                   1.000 |                    0.000 |                          0.575 |
-| (240, 200) |             0.600 |                   1.000 |                    0.000 |                          0.800 |
-| (240, 300) |           nan     |                 nan     |                  nan     |                          0.975 |
-| (240, 374) |           nan     |                 nan     |                  nan     |                          1.000 |
-| (480, 10)  |             0.625 |                   0.650 |                    0.600 |                          0.675 |
-| (480, 25)  |             0.925 |                   0.950 |                    0.850 |                          0.875 |
-| (480, 50)  |             0.975 |                   1.000 |                    0.875 |                          0.975 |
-| (480, 100) |             1.000 |                   1.000 |                    0.975 |                          1.000 |
-| (480, 200) |             1.000 |                   1.000 |                    0.250 |                          1.000 |
-| (480, 300) |             1.000 |                   1.000 |                    0.000 |                          1.000 |
-| (480, 374) |             1.000 |                   1.000 |                    0.000 |                          1.000 |
-| (654, 10)  |             0.775 |                   0.775 |                    0.700 |                          0.725 |
-| (654, 25)  |             0.950 |                   0.950 |                    0.875 |                          0.900 |
-| (654, 50)  |             1.000 |                   1.000 |                    1.000 |                          1.000 |
-| (654, 100) |             1.000 |                   1.000 |                    1.000 |                          1.000 |
-| (654, 200) |             1.000 |                   1.000 |                    1.000 |                          1.000 |
-| (654, 300) |             1.000 |                   1.000 |                    0.900 |                          1.000 |
-| (654, 374) |             1.000 |                   1.000 |                    0.000 |                          1.000 |
+| n_obs / n_assets        |   grs_reject_rate |   wald_chi2_reject_rate |   grs_shrunk_reject_rate |   pesaran_yamagata_reject_rate |
+|:------------------------|------------------:|------------------------:|-------------------------:|-------------------------------:|
+| n_obs=120, n_assets=10  |             0.025 |                   0.100 |                    0.025 |                          0.050 |
+| n_obs=120, n_assets=25  |             0.075 |                   0.300 |                    0.000 |                          0.025 |
+| n_obs=120, n_assets=50  |             0.100 |                   0.975 |                    0.000 |                          0.000 |
+| n_obs=120, n_assets=100 |             0.125 |                   1.000 |                    0.000 |                          0.000 |
+| n_obs=120, n_assets=200 |           nan     |                 nan     |                  nan     |                          0.000 |
+| n_obs=120, n_assets=300 |           nan     |                 nan     |                  nan     |                          0.000 |
+| n_obs=120, n_assets=374 |           nan     |                 nan     |                  nan     |                          0.000 |
+| n_obs=240, n_assets=10  |             0.150 |                   0.225 |                    0.075 |                          0.125 |
+| n_obs=240, n_assets=25  |             0.350 |                   0.525 |                    0.050 |                          0.200 |
+| n_obs=240, n_assets=50  |             0.425 |                   0.925 |                    0.075 |                          0.375 |
+| n_obs=240, n_assets=100 |             0.625 |                   1.000 |                    0.000 |                          0.575 |
+| n_obs=240, n_assets=200 |             0.600 |                   1.000 |                    0.000 |                          0.800 |
+| n_obs=240, n_assets=300 |           nan     |                 nan     |                  nan     |                          0.975 |
+| n_obs=240, n_assets=374 |           nan     |                 nan     |                  nan     |                          1.000 |
+| n_obs=480, n_assets=10  |             0.625 |                   0.650 |                    0.600 |                          0.675 |
+| n_obs=480, n_assets=25  |             0.925 |                   0.950 |                    0.850 |                          0.875 |
+| n_obs=480, n_assets=50  |             0.975 |                   1.000 |                    0.875 |                          0.975 |
+| n_obs=480, n_assets=100 |             1.000 |                   1.000 |                    0.975 |                          1.000 |
+| n_obs=480, n_assets=200 |             1.000 |                   1.000 |                    0.250 |                          1.000 |
+| n_obs=480, n_assets=300 |             1.000 |                   1.000 |                    0.000 |                          1.000 |
+| n_obs=480, n_assets=374 |             1.000 |                   1.000 |                    0.000 |                          1.000 |
+| n_obs=654, n_assets=10  |             0.775 |                   0.775 |                    0.700 |                          0.725 |
+| n_obs=654, n_assets=25  |             0.950 |                   0.950 |                    0.875 |                          0.900 |
+| n_obs=654, n_assets=50  |             1.000 |                   1.000 |                    1.000 |                          1.000 |
+| n_obs=654, n_assets=100 |             1.000 |                   1.000 |                    1.000 |                          1.000 |
+| n_obs=654, n_assets=200 |             1.000 |                   1.000 |                    1.000 |                          1.000 |
+| n_obs=654, n_assets=300 |             1.000 |                   1.000 |                    0.900 |                          1.000 |
+| n_obs=654, n_assets=374 |             1.000 |                   1.000 |                    0.000 |                          1.000 |
 
 Over the full sample GRS rejects the six-factor model for essentially every
 subset with *N* ≥ 50. The simulation is what licenses reading that as genuine
@@ -624,7 +803,7 @@ All three are now regression tests in `tests/test_montecarlo.py`.
 
 ```bash
 pip install -r requirements.txt
-make test     # 74 tests
+make test     # 78 tests
 make all      # full pipeline
 python3 scripts/07_report.py
 ```

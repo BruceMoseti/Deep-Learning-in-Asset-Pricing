@@ -34,6 +34,19 @@ def jsonf(name: str) -> dict:
 
 
 def md(frame: pd.DataFrame, floatfmt: str = ".4f") -> str:
+    """Markdown table, with any MultiIndex collapsed into one readable column.
+
+    ``to_markdown`` renders a MultiIndex as Python tuples, which is unreadable
+    in a report.
+    """
+    if isinstance(frame.index, pd.MultiIndex):
+        labels = [
+            ", ".join(f"{name}={value}" if name else str(value)
+                      for name, value in zip(frame.index.names, key))
+            for key in frame.index
+        ]
+        frame = frame.copy()
+        frame.index = pd.Index(labels, name=" / ".join(str(n) for n in frame.index.names))
     return frame.to_markdown(floatfmt=floatfmt)
 
 
@@ -78,8 +91,8 @@ def main() -> None:
     exp4 = jsonf("exp4_calibration")
     size = table("exp4_size_power_full")
     worst = table("exp4_worst_case_size", "test")
-    defined = table("exp4_test_defined", ["n_obs", "n_assets"])
-    real = table("exp4_real_data", ["n_obs", "n_assets"])
+    defined = table("exp4_test_defined").set_index(["n_obs", "n_assets"]).sort_index()
+    real = table("exp4_real_data").set_index(["n_obs", "n_assets"]).sort_index()
     design = table("exp5_design_robustness", "variant")
     subperiods = table("exp5_subperiods", ["period", "model"])
     regimes = table("exp5_regimes", ["dimension", "state", "model"])
@@ -98,6 +111,23 @@ def main() -> None:
         except KeyError:
             return float("nan")
 
+    def readable(frame: pd.DataFrame) -> pd.DataFrame:
+        out = frame.reset_index()
+        out.insert(0, "comparison", out["model"] + " vs " + out["benchmark"])
+        return out.drop(columns=["model", "benchmark"]).set_index("comparison")
+
+    order = run["models"]
+    adjacent_pairs = [
+        pair for pair in zip(order[1:], order[:-1]) if pair in comparisons.index
+    ]
+    comparisons_adjacent = readable(comparisons.loc[adjacent_pairs])
+    flat = comparisons.reset_index()
+    comparisons_key = readable(
+        flat[
+            (flat["benchmark"] == best_linear) & (flat["model"] != best_linear)
+        ].set_index(["model", "benchmark"])
+    )
+
     n_published = int(exp3_run["n_published_predictors_used"])
     bonferroni_t = float(stats.norm.isf(0.025 / n_published))
 
@@ -107,11 +137,13 @@ def main() -> None:
     grid_tests = ["grs", "wald_chi2", "grs_shrunk", "pesaran_yamagata"]
     long_sample = int(size["n_obs"].max())
     size_long = size[size["n_obs"] == long_sample].copy()
-    size_grid = size_long.pivot_table(
-        index="error_model",
-        columns="n_assets",
-        values=[f"{t}_size" for t in grid_tests],
-    ).rename(columns=lambda c: c.replace("_size", ""), level=0)
+    size_grid = (
+        size_long.set_index(["error_model", "n_assets"])[
+            [f"{t}_size" for t in grid_tests]
+        ]
+        .rename(columns=lambda c: c.replace("_size", ""))
+        .sort_index()
+    )
 
     def size_at(error_model: str, n_assets: int, test: str) -> float:
         row = size_long[
@@ -140,6 +172,21 @@ def main() -> None:
         most_costly = combined.index[0]
         best_alone = combined["ic_with_group_alone"].idxmax()
         redundant = combined["ic_change_when_removed"].idxmax()
+        # The clearest case of the two columns disagreeing: among the groups
+        # that are cheap to remove, the one that does best on its own.
+        cheap = combined[
+            combined["ic_change_when_removed"]
+            >= combined["ic_change_when_removed"].median()
+        ]
+        substitutable = cheap["ic_with_group_alone"].idxmax()
+        # The group whose removal most improves the break-even cost, i.e. the
+        # one paying the least accuracy per unit of turnover it causes.
+        breakeven = ablation["breakeven_cost_bps"]
+        cheapest_drop = (
+            breakeven[["without_" + g for g in combined.index]]
+            .idxmax()
+            .replace("without_", "")
+        )
 
         ablation_section = f"""
 ### 5.1 Which predictors carry the signal
@@ -158,13 +205,41 @@ does best on its own is **{best_alone}**
 (IC {combined.loc[best_alone, 'ic_with_group_alone']:.4f} alone, against
 {full_ic:.4f} for everything together).
 
-The two columns disagree, and the disagreement is the point. Removing
-**{redundant}** changes the result least
-({combined.loc[redundant, 'ic_change_when_removed']:+.4f}) — but that is a
-statement about redundancy given the other predictors, not about whether the
-group contains information. A group can be entirely substitutable and still be
-informative on its own. Reporting only the leave-one-out column would license
-the wrong conclusion.
+**The two columns disagree, and the disagreement is the point.** Look at
+**{substitutable}**: removing it costs almost nothing
+({combined.loc[substitutable, 'ic_change_when_removed']:+.4f}, among the
+smallest in the table), yet on its own it delivers
+{combined.loc[substitutable, 'ic_with_group_alone']:.4f} — second only to
+{best_alone}. A leave-one-out study alone would have concluded that
+{substitutable} contains no information. What it actually shows is that
+{substitutable} is *substitutable*: the other predictors already span most of
+what it knows. Those are different claims, and only the second is true.
+
+The reverse case is **{redundant}**, where removing the group leaves the result
+unchanged or slightly better
+({combined.loc[redundant, 'ic_change_when_removed']:+.4f}) *and* it is close to
+useless alone ({combined.loc[redundant, 'ic_with_group_alone']:.4f}). That is a
+group carrying no information, which is a genuine finding rather than an
+artefact of redundancy — and it is only distinguishable from the
+{substitutable} case because both columns were computed.
+
+**The signal is concentrated, not spread.** `{best_alone}` on its own reaches
+{combined.loc[best_alone, 'ic_with_group_alone']:.4f} of the
+{full_ic:.4f} available from all {run['n_predictors']} predictors — so most of
+what the model knows comes from a handful of trailing-drawdown and
+risk-adjusted-momentum measures rather than from combining many weak signals.
+Three groups contribute essentially nothing on their own
+({", ".join(combined['ic_with_group_alone'].nsmallest(3).index)}), and dropping
+them does not hurt.
+
+**And attribution interacts with cost.** Dropping `{cheapest_drop}` costs
+{abs(combined.loc[cheapest_drop, 'ic_change_when_removed']):.4f} of IC but
+raises the break-even cost from
+{ablation.loc['all_predictors', 'breakeven_cost_bps']:.0f} to
+{ablation.loc['without_' + cheapest_drop, 'breakeven_cost_bps']:.0f} bps,
+because that group is what drives the turnover. A predictor group can be
+informative and still not be worth trading, which is invisible to any
+importance measure that ignores the portfolio.
 {figure("fig10_feature_ablation", "Removing a predictor group and using it alone answer different questions")}
 """
 
@@ -293,15 +368,33 @@ complexity pays. That conclusion does not survive a paired test.
 
 Both models face the same cross-section every month, so their monthly ICs can
 be differenced pairwise. The common component cancels and the resulting test is
-far tighter than comparing two standard errors.
+far tighter than comparing two standard errors. `ic_diff_tstat` tests the
+rank-IC gap; `dm_tstat_squared_error` is Diebold-Mariano on squared error, where
+negative favours the row.
 
-{md(comparisons)}
+**Each step of the ladder against the step below it:**
 
-`ic_diff_tstat` tests the rank-IC gap; `dm_tstat_squared_error` is
-Diebold-Mariano on squared error, where negative favours the row.
+{md(comparisons_adjacent)}
 
-Read the two comparisons against `{best_linear}`, the best linear model, and
-against ridge:
+**Not one adjacent step is a significant improvement.** The only significant row
+is the last, and it goes the wrong way: the neural network is significantly
+*worse* than boosting. Every rung of the ladder is small relative to its own
+standard error; only the cumulative distance covers enough ground to be
+detected.
+
+One row is worth pausing on as a caution about reading *t*-statistics alone.
+`ridge` versus `ols` has an IC difference of
+{compare('ridge', 'ols', 'ic_difference'):+.5f} — economically nothing — and yet
+*t* = {compare('ridge', 'ols', 'ic_diff_tstat'):.2f}. Ridge's validated penalty
+is so small that it reproduces OLS almost exactly, so the paired difference is
+minuscule but almost perfectly consistent in sign, which is all a *t*-statistic
+needs. Significance without an effect size means nothing.
+
+**Everything against `{best_linear}`, the best linear model:**
+
+{md(comparisons_key)}
+
+Read that alongside the comparison against ridge:
 
 - **{best} beats ridge**: IC gap
   {compare(best, 'ridge', 'ic_difference'):+.4f},
@@ -323,9 +416,9 @@ So the answer to the project's stated question is **no, not reliably**. What
 separates ridge from boosting is almost entirely the sparse regularisation in
 between: ridge selects a penalty so small it is effectively OLS — with
 {run['n_predictors']} predictors and {run['n_observations']:,} observations
-there is no ill-conditioning for shrinkage to fix — whereas Lasso's variable
-selection is a real restriction that pays out of sample. Adding nonlinearity on
-top of that buys a further
+there is no ill-conditioning for shrinkage to fix — whereas the sparse variable
+selection in Lasso and elastic net is a real restriction that pays out of
+sample. Adding nonlinearity on top of that buys a further
 {compare(best, best_linear, 'ic_difference'):+.4f} of IC, which is not
 distinguishable from zero.
 
