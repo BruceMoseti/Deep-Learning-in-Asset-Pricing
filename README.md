@@ -27,10 +27,10 @@ Objections and robustness: [`docs/DISCUSSION.md`](docs/DISCUSSION.md).
 **The gain from complexity is sparsity, not nonlinearity.** Rank information
 coefficient rises monotonically along the model ladder — 0.025 for a single
 momentum characteristic, 0.032 ridge, 0.042 lasso, 0.049 gradient boosting
-(\(t = 3.6\) against zero). A paired test on the monthly IC differences tells a
-different story: boosting beats ridge (gap \(+0.018\), \(t = 2.4\)) but is
-indistinguishable from elastic net, the best linear model (gap \(+0.006\),
-\(t = 1.5\), \(p = 0.14\); on squared error \(p = 0.77\)), and the neural network
+(t = 3.6 against zero). A paired test on the monthly IC differences tells a
+different story: boosting beats ridge (gap +0.018, t = 2.4) but is
+indistinguishable from elastic net, the best linear model (gap +0.006,
+t = 1.5, p = 0.14; on squared error p = 0.77), and the neural network
 is significantly worse than elastic net. No single adjacent step in the ladder
 is significant. Ridge selects a penalty small enough to reproduce OLS, which is
 expected with 26 predictors and 249,000 observations, so what separates the ends
@@ -43,25 +43,25 @@ baseline, which trades least and has nearly the lowest gross Sharpe, breaks even
 highest of all at 42.
 
 **The alpha survives factor controls and does not survive Bonferroni.** Boosting
-earns a six-factor alpha of 7.0% a year (\(t = 2.83\)) with a factor-regression
-\(R^2\) of 0.036. Measured against 212 published predictors from the
+earns a six-factor alpha of 7.0% a year (t = 2.83) with a factor-regression
+R² of 0.036. Measured against 212 published predictors from the
 Chen-Zimmermann dataset — of which 163 are significant uncorrected, 159 survive
-Benjamini-Hochberg and 84 survive Bonferroni — its \(t = 3.43\) clears the
-Harvey-Liu-Zhu \(|t| > 3\) hurdle, fails Bonferroni, and sits at the 57th
+Benjamini-Hochberg and 84 survive Bonferroni — its t = 3.43 clears the
+Harvey-Liu-Zhu |t| > 3 hurdle, fails Bonferroni, and sits at the 57th
 percentile of the published distribution.
 
 **Dimension is not what breaks asset-pricing tests.** Contrary to this study's
 own initial hypothesis, the Gibbons-Ross-Shanken test does not degrade as
-\(N/T \to 1\): it is exact in finite samples for any \(N \le T-K-1\) and holds
-its nominal 5% at \(N/T = 0.83\) even under heavy tails, a persistent common
-volatility factor, and residuals resampled from the real panel (median size
-0.050 across the grid). What does break is the asymptotic version of the same
-statistic (5% → 100% as \(N\) goes 10 → 200), shrinkage paired with an
-unadjusted reference distribution (median size 0.000 — it rejects nothing), and
-the large-\(N\) alternative, whose size reaches 0.28 under real cross-sectional
-dependence and rises *with* \(N\). GRS needs \(N < T\); Pesaran-Yamagata needs
-weak cross-sectional dependence; equity panels violate the second and large
-cross-sections violate the first.
+*N/T* → 1. It is exact in finite samples for any *N* ≤ *T* − *K* − 1, and holds
+its nominal 5% at *N/T* = 0.83 even under heavy tails, a persistent common
+volatility factor, and residuals resampled from the real panel — median size
+0.050 across the grid. What breaks instead is the asymptotic version of the same
+statistic (5% → 100% as *N* rises from 10 to 200), shrinkage paired with an
+unadjusted reference distribution (median size 0.000, so it rejects nothing),
+and the large-*N* alternative, whose size reaches 0.28 under real
+cross-sectional dependence and rises with *N* rather than falling. GRS needs
+*N* < *T*; Pesaran-Yamagata needs weak cross-sectional dependence; equity panels
+violate the second and large cross-sections violate the first.
 
 **Predictability is concentrated and decaying.** The trend and drawdown group
 alone reaches IC 0.044 of the 0.049 available from all 26 predictors. Momentum

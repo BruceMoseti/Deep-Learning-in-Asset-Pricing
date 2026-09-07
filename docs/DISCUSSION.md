@@ -58,7 +58,7 @@ It also makes the forecast dollar-neutral by construction, so a market-timing
 bet cannot be reported as a cross-sectional finding.
 
 The cost is real: the output is no longer a return in percent, so it is not
-directly a dollar expectation, and out-of-sample \(R^2\) is measured against a
+directly a dollar expectation, and out-of-sample R² is measured against a
 standardised target. Both are reported, and `--target rank` re-runs the pipeline
 on a rank-transformed target as a robustness check.
 
@@ -81,19 +81,19 @@ It is tested. `tests/test_no_lookahead.py`:
 
 ## Results
 
-### A negative out-of-sample \(R^2\) contradicts a positive information coefficient
+### A negative out-of-sample R² contradicts a positive information coefficient
 
 They measure different things, and the gap is diagnosable rather than
 contradictory. The information coefficient asks whether the ordering carries
-information. \(R^2\) asks whether the forecast is the right size, and squared
+information. R² asks whether the forecast is the right size, and squared
 error punishes over-scaling hard.
 
 A calibration regression separates the two: regress the outcome on the forecast
 out of sample and read the slope (`results/exp1_forecast_accuracy.csv`,
 `reports/figures/fig2_calibration_gap.png`). Ridge's slope is 0.31, so its
 forecasts are roughly three times too large. Gradient boosting's is 0.67 and its
-\(R^2_{OOS}\) is positive. The better-calibrated models are precisely those with
-positive \(R^2\).
+R²(OOS) is positive. The better-calibrated models are precisely those with
+positive R².
 
 The portfolio uses only the ranking, so the information coefficient is the
 operative metric here — but reporting it alone would have concealed a genuine
@@ -109,11 +109,11 @@ faces the same cross-section each month, their monthly ICs can be differenced
 pairwise; the common component cancels and the resulting test is far tighter
 than comparing two standard errors (`results/exp1_model_comparisons.csv`):
 
-| Comparison | IC gap | \(t\) | Squared-error \(p\) |
+| Comparison | IC gap | *t* | Squared-error *p* |
 | --- | --- | --- | --- |
-| Boosting vs ridge | \(+0.018\) | 2.4 | 0.000 |
-| Boosting vs elastic net | \(+0.006\) | 1.5 | 0.77 |
-| Network vs elastic net | \(-0.012\) | \(-1.5\) | 0.009 |
+| Boosting vs ridge | +0.018 | 2.4 | 0.000 |
+| Boosting vs elastic net | +0.006 | 1.5 | 0.77 |
+| Network vs elastic net | -0.012 | -1.5 | 0.009 |
 
 Boosting beats ridge. It does not beat elastic net, the best linear model. The
 neural network is significantly worse than elastic net on squared error. And no
@@ -181,11 +181,11 @@ gross-accuracy and net-of-cost rankings already disagree.
 ### The performance is a repackaging of known factors
 
 Gradient boosting's gross long-short return carries a six-factor alpha of 7.0% a
-year with \(t = 2.83\), and the factor-regression \(R^2\) is only 0.036 — market
-beta is \(-0.02\), and the strategy is close to orthogonal to size, value,
+year with t = 2.83, and the factor-regression R² is only 0.036 — market
+beta is -0.02, and the strategy is close to orthogonal to size, value,
 profitability, investment and momentum.
 
-That low \(R^2\) should not be oversold. A dollar-neutral decile spread across
+That low R² should not be oversold. A dollar-neutral decile spread across
 characteristic-sorted portfolios is partly constructed to be factor-neutral. The
 substantive content is that alpha does not collapse when the six factors are
 added.
@@ -198,9 +198,9 @@ cross-section rather than only to this strategy.
 The same tests were run across 212 published cross-sectional predictors from the
 Chen-Zimmermann dataset. Of those, 163 are significant uncorrected at 5%, 159
 survive Benjamini-Hochberg, only 84 survive Bonferroni, and 51% clear the
-Harvey-Liu-Zhu \(|t| > 3\) hurdle.
+Harvey-Liu-Zhu |t| > 3 hurdle.
 
-Placed on that scale, boosting's \(t = 3.43\) clears the \(|t| > 3\) hurdle but
+Placed on that scale, boosting's t = 3.43 clears the |t| > 3 hurdle but
 does not survive a Bonferroni correction across 212 hypotheses, and sits at
 roughly the 57th percentile of the published distribution. Statistically real on
 its own terms; median-strength in context; not strong enough for the most
@@ -227,7 +227,7 @@ predictors. The signal is concentrated rather than assembled from many weak
 pieces.
 
 The two ablation directions disagree, and computing only one would mislead.
-Removing momentum costs almost nothing (\(-0.0020\)), which a leave-one-out
+Removing momentum costs almost nothing (-0.0020), which a leave-one-out
 study alone would read as momentum containing no information. But momentum on
 its own delivers 0.0228, second only to trend: it is substitutable, not
 uninformative, because the other predictors already span most of what it knows.
@@ -245,7 +245,7 @@ in the 2010s, for every model. Two readings are consistent with that, and this
 design cannot separate them. Either the relations were arbitraged away as they
 became known — the pattern the anomaly-decay literature predicts — or the early
 result was partly luck. The second possibility is why the full-sample
-\(t\)-statistic matters more here than the point estimate.
+*t*-statistic matters more here than the point estimate.
 
 ---
 
@@ -254,36 +254,36 @@ result was partly luck. The second possibility is why the full-sample
 ### Asset-pricing tests must degrade as the number of assets grows
 
 This was the study's own initial hypothesis, and it is wrong. The intuition —
-that GRS inverts an \(N \times N\) covariance matrix estimated from \(T\)
-observations, so it must degrade as \(N/T \to 1\) — does not survive simulation.
+that GRS inverts an *N* × *N* covariance matrix estimated from *T*
+observations, so it must degrade as *N/T* → 1 — does not survive simulation.
 A test asserting it failed.
 
 GRS is exact in finite samples under its assumptions: normal, homoskedastic,
 serially independent residuals with any cross-sectional covariance, for every
-\(N \le T - K - 1\). It holds its nominal 5% at \(N/T = 0.83\), and its size
-further survives heavy tails (\(t\) with 7.3 degrees of freedom, calibrated to
+*N* ≤ *T* − *K* − 1. It holds its nominal 5% at *N/T* = 0.83, and its size
+further survives heavy tails (*t* with 7.3 degrees of freedom, calibrated to
 the data), a persistent common volatility factor, and residual vectors
 resampled from the real panel. Median size across the whole grid is 0.050.
 
 What does break is different, and more informative:
 
 - **The asymptotic version of the same statistic.** Referring the identical
-  quadratic form to \(\chi^2_N\) rather than the exact \(F\) gives a rejection
-  rate of about 10% at \(N = 10\), 28% at \(N = 50\), 75% at \(N = 100\), and
-  100% at \(N \ge 200\) with \(T = 360\). Same data, same statistic; only the
+  quadratic form to χ²(N) rather than the exact *F* gives a rejection
+  rate of about 10% at N = 10, 28% at N = 50, 75% at N = 100, and
+  100% at N ≥ 200 with T = 360. Same data, same statistic; only the
   reference distribution differs. The finite-sample correction does all the
   work.
 - **Shrinkage without recalibration.** A Ledoit-Wolf covariance conditions
-  better and shrinks the statistic, but the \(F\) critical value is unchanged,
+  better and shrinks the statistic, but the *F* critical value is unchanged,
   so size collapses to zero and the test rejects nothing. Better estimation is
   not automatically better inference.
-- **The large-\(N\) test's assumption.** Pesaran-Yamagata never inverts an
-  \(N \times N\) matrix and stays defined when \(N > T\), and it is correctly
+- **The large-*N* test's assumption.** Pesaran-Yamagata never inverts an
+  *N* × *N* matrix and stays defined when *N* > *T*, and it is correctly
   sized under cross-sectional independence. Under the correlation actually
-  present in these portfolios its size reaches 0.28 — and rises with \(N\),
-  the opposite of what an asymptotic-in-\(N\) test should do.
+  present in these portfolios its size reaches 0.28 — and rises with *N*,
+  the opposite of what an asymptotic-in-*N* test should do.
 
-The trade-off is therefore not about dimension. GRS needs \(N < T\);
+The trade-off is therefore not about dimension. GRS needs *N* < *T*;
 Pesaran-Yamagata needs weak cross-sectional dependence. Equity portfolios
 violate the second and modern cross-sections violate the first.
 
@@ -293,7 +293,7 @@ It was, twice, before being fixed — and both times it measured the resampling
 scheme rather than the data.
 
 Resampling months with replacement repeats months, so the residual covariance
-is estimated from fewer distinct observations than the nominal \(T\). Size
+is estimated from fewer distinct observations than the nominal *T*. Size
 reached 0.78, which is large enough to look like a finding about real returns.
 Sampling without replacement removed the duplication and introduced the
 opposite error: the finite-population correction shrinks the variance of the
