@@ -91,6 +91,43 @@ def test_breakeven_cost_makes_the_net_mean_zero():
     assert net.mean() == pytest.approx(0.0, abs=1e-12)
 
 
+def test_a_constant_score_holds_nothing():
+    """A model with no view must hold no position, not an alphabetical portfolio.
+
+    ``rank(method='first')`` breaks ties by row order, so without an explicit
+    guard a flat score would be split into deciles by asset name and the
+    resulting return credited to the model.  A penalised model that has shrunk
+    every coefficient to zero produces exactly this input.
+    """
+    months = pd.period_range("2000-01", periods=12, freq="M")
+    assets = [f"a{i:02d}" for i in range(60)]
+    index = pd.MultiIndex.from_product([months, assets], names=["month", "asset"])
+    flat = pd.Series(0.0, index=index)
+    rng = np.random.default_rng(7)
+    returns = pd.Series(rng.normal(0.0, 0.05, len(index)), index=index)
+
+    weights = quantile_weights(flat, n_quantiles=10)
+    assert weights.abs().max() == pytest.approx(0.0)
+
+    result = backtest(flat, returns, cost_bps=(10.0,))
+    assert result["gross"].abs().max() == pytest.approx(0.0)
+    assert result["turnover"].abs().max() == pytest.approx(0.0)
+
+
+def test_a_partly_flat_score_is_only_traded_when_it_has_a_view():
+    """Months with a view are traded; months without are held in cash."""
+    months = pd.period_range("2000-01", periods=4, freq="M")
+    assets = [f"a{i:02d}" for i in range(40)]
+    index = pd.MultiIndex.from_product([months, assets], names=["month", "asset"])
+    scores = pd.Series(0.0, index=index)
+    scores.loc[months[1]] = np.arange(40, dtype=float)
+    scores.loc[months[2]] = np.arange(40, dtype=float)
+
+    result = backtest(scores, pd.Series(0.0, index=index), cost_bps=(10.0,))
+    # Enter in the second month, hold through the third, exit in the fourth.
+    assert result["turnover"].to_numpy() == pytest.approx([0.0, 2.0, 0.0, 2.0])
+
+
 def test_performance_matches_hand_computed_values():
     returns = pd.Series([0.01] * 24, index=pd.period_range("2000-01", periods=24, freq="M"))
     stats = performance(returns)

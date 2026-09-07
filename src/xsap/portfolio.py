@@ -44,7 +44,11 @@ def quantile_weights(
         raise ValueError(f"unknown weighting: {weighting}")
 
     def _month(block: pd.Series) -> pd.Series:
-        if len(block) < 2 * n_quantiles:
+        # A constant score carries no ranking information, so the book is empty.
+        # Without this the tie-break below would sort assets by name and build a
+        # real portfolio out of nothing, which a penalised model that has
+        # shrunk every coefficient to zero would silently be credited for.
+        if len(block) < 2 * n_quantiles or block.nunique() < 2:
             return pd.Series(0.0, index=block.index)
         # ``rank(method='first')`` keeps buckets balanced when scores tie.
         buckets = pd.qcut(
@@ -148,6 +152,8 @@ def quantile_profile(
     ).dropna()
 
     def _bucket(block: pd.Series) -> pd.Series:
+        if block.nunique() < 2:
+            return pd.Series(np.nan, index=block.index)
         return pd.qcut(
             block.rank(method="first"), n_quantiles, labels=False, duplicates="drop"
         )

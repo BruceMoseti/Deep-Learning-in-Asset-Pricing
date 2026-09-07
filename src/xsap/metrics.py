@@ -21,8 +21,18 @@ def monthly_ic(
     frame = pd.concat([predictions.rename("p"), targets.rename("y")], axis=1).dropna()
 
     def _corr(block: pd.DataFrame) -> float:
-        if len(block) < 5 or block["p"].nunique() < 2 or block["y"].nunique() < 2:
+        if len(block) < 5 or block["y"].nunique() < 2:
             return np.nan
+        if block["p"].nunique() < 2:
+            # A penalised model sometimes shrinks every coefficient to zero and
+            # so declines to rank the cross-section at all.  That is a forecast
+            # of "no view", worth exactly zero, and it is scored as zero.
+            # Dropping these months instead would average the model's IC over
+            # only the months in which it chose to have an opinion, which
+            # selects on the model's own confidence and flatters it: Lasso does
+            # this in 44% of months here, and dropping them raised its apparent
+            # IC from 0.025 to 0.044.
+            return 0.0
         if method == "spearman":
             return stats.spearmanr(block["p"], block["y"]).statistic
         return float(np.corrcoef(block["p"], block["y"])[0, 1])

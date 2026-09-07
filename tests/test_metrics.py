@@ -63,6 +63,33 @@ def test_summary_reports_positive_skill_for_an_informative_forecast(paired_serie
     assert stats["n_months"] == 60
 
 
+def test_a_constant_forecast_scores_zero_rather_than_being_dropped(paired_series):
+    """Declining to rank the cross-section is worth zero, not worth omitting.
+
+    If these months were dropped, a model's average IC would be taken over only
+    the months in which it chose to have a view -- selection on the model's own
+    confidence.
+    """
+    y = paired_series
+    flat = pd.Series(0.0, index=y.index)
+    ic = monthly_ic(flat, y)
+    assert ic.notna().all()
+    assert ic.abs().max() == pytest.approx(0.0)
+
+    rng = np.random.default_rng(20)
+    informative = pd.Series(rng.normal(size=len(y)), index=y.index) + y
+    months = y.index.get_level_values("month").unique()
+    partial = informative.copy()
+    partial.loc[months[:30]] = 0.0
+
+    diluted = monthly_ic(partial, y)
+    assert diluted.notna().all()
+    assert diluted.loc[months[:30]].abs().max() == pytest.approx(0.0)
+    # Half the months carry no view, so the average must be roughly halved
+    # rather than unchanged.
+    assert diluted.mean() < 0.6 * monthly_ic(informative, y).mean()
+
+
 def test_diebold_mariano_prefers_the_better_forecast(paired_series):
     y = paired_series
     rng = np.random.default_rng(10)

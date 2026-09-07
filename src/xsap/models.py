@@ -57,7 +57,14 @@ class Linear:
     """OLS, or a penalised linear model with the penalty tuned on validation."""
 
     kind: str = "ols"
-    alphas: tuple[float, ...] = (1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0)
+    # Weighted toward small penalties: the predictors are rank-transformed to
+    # [-1, 1] and the target has unit cross-sectional variance, so a Lasso
+    # penalty of 0.1 already zeroes every coefficient.  The grid needs
+    # resolution below that, or the only choices on offer are "barely
+    # penalised" and "no forecast at all".
+    alphas: tuple[float, ...] = (
+        1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 1.0,
+    )
     l1_ratios: tuple[float, ...] = (0.1, 0.5, 0.9)
     name: str = ""
     best: dict = field(default_factory=dict)
