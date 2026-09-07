@@ -39,7 +39,7 @@ test for the diagnosis, not just for the fix.
 
 ## Report the unflattering number
 
-The Bonferroni verdict, the negative out-of-sample \(R^2\), the 57th
+The Bonferroni verdict, the negative out-of-sample R², the 57th
 percentile, the decade-by-decade decay, the one-line baseline having the best
 break-even cost. Do not drop a result because it weakens a headline.
 

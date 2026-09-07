@@ -27,7 +27,7 @@ estimated on 2008 and a few of its neighbours. Scaling makes each month
 contribute comparably.
 
 **What this costs.** The model no longer forecasts a return in percent, so its
-output is not directly a dollar expectation, and out-of-sample \(R^2\) is
+output is not directly a dollar expectation, and out-of-sample R² is
 measured against a standardised target rather than a raw one. Both are stated
 where they matter. `--target rank` runs the whole pipeline on a rank-transformed
 target instead, as a robustness check.
@@ -42,7 +42,7 @@ reversal, several volatility measures, market beta and comovement, coskewness,
 higher moments, drawdown and trend, annual seasonality, return persistence, and
 three static labels describing the asset's place in its sort.
 
-**Rank transform.** Each predictor is mapped to \([-1, 1]\) by its
+**Rank transform.** Each predictor is mapped to [-1, 1] by its
 cross-sectional rank within the month, following Gu, Kelly and Xiu (2020). This
 is scale-free, insensitive to the heavy tails and level shifts that a rolling
 z-score would propagate forward, and — importantly — uses only information from
@@ -144,7 +144,7 @@ long and `-1` short. Gross exposure 2, net 0. The reported return is the
 long-short spread per dollar of each leg — not a return on posted margin, which
 would be a leverage assumption presented as performance.
 
-**Turnover.** Two-sided, \(\sum_i |w_{i,t} - w_{i,t-1}|\). Replacing both legs
+**Turnover.** Two-sided, the sum over assets of |w_it − w_i,t−1|. Replacing both legs
 in full gives 4, since each leg is both exited and entered. Positions are not
 drifted between rebalances, which slightly overstates turnover — the direction
 an honest cost estimate should err in.
@@ -182,7 +182,7 @@ interval. Interval coverage is verified by a 120-trial coverage study, not by
 checking that one interval happens to bracket the truth.
 
 **Multiple testing.** Bonferroni and Benjamini-Hochberg over 212 published
-predictors, plus the Harvey-Liu-Zhu \(|t| > 3\) hurdle. The point of applying
+predictors, plus the Harvey-Liu-Zhu |t| > 3 hurdle. The point of applying
 this to the published cross-section rather than only to this project's own
 strategy is that it puts the strategy's t-statistic on a scale: its percentile
 among predictors that have already been through the same filter.
