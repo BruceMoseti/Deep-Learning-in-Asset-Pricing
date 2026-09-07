@@ -246,7 +246,7 @@ def subperiod_analysis(
 
     edges = (ic.index.year.min(), *breakpoints, ic.index.year.max() + 1)
     rows = []
-    for start, end in zip(edges[:-1], edges[1:]):
+    for start, end in zip(edges[:-1], edges[1:], strict=True):
         mask = (ic.index.year >= start) & (ic.index.year < end)
         if mask.sum() < 24:
             continue

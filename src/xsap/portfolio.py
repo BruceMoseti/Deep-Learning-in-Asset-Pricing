@@ -118,7 +118,9 @@ def performance(returns: pd.Series, periods: int = MONTHS) -> dict:
         "ann_vol": float(ann_vol),
         "sharpe": float(mean / vol * np.sqrt(periods)) if vol > 0 else np.nan,
         "max_drawdown": float(drawdown.min()),
-        "calmar": float(ann_geometric / abs(drawdown.min())) if drawdown.min() < 0 else np.nan,
+        "calmar": (
+            float(ann_geometric / abs(drawdown.min())) if drawdown.min() < 0 else np.nan
+        ),
         "hit_rate": float((r > 0).mean()),
         "skew": float(r.skew()),
         "worst_month": float(r.min()),

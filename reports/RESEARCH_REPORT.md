@@ -92,7 +92,8 @@ points on an ordered sort, so they are not comparable across the cross-section.
 
 Mkt-RF at 0.57% and momentum at
 0.60% per month match published values,
-which is the check that the mirrored files are the real library.
+matching published values, which is how the mirrored files are checked against
+the primary source.
 
 ### 1.3 What this data cannot support
 
@@ -189,8 +190,7 @@ is the last, and it goes the wrong way: the neural network is significantly
 standard error; only the cumulative distance covers enough ground to be
 detected.
 
-One row is worth pausing on as a caution about reading *t*-statistics alone.
-`ridge` versus `ols` has an IC difference of
+One row needs care. `ridge` versus `ols` has an IC difference of
 +0.00000 — economically nothing — and yet
 *t* = 1.93. Ridge's validated penalty
 is so small that it reproduces OLS almost exactly, so the paired difference is
@@ -238,8 +238,7 @@ distinguishable from zero.
 
 Note also that no *single adjacent* step in the ladder is significant on its
 own. Only the cumulative gap from ridge to xgboost clears conventional
-significance. A table of point estimates would have supported a much stronger
-claim than the data does.
+significance.
 
 That the network trails is the expected outcome for 374 assets and
 26 return-based predictors: boosting at depth 2 to 4 fits
@@ -318,10 +317,9 @@ disappears — the most of any model — because it turns over
 2.31. Ridge and OLS are *negative*
 at 20 bps.
 
-This is the most useful result in the project, and it only appears if turnover
-is charged for before models are compared. A study that stopped at gross Sharpe
-would have concluded that penalised linear models beat a one-line signal. After
-costs they do not.
+The reversal only appears if turnover is charged for before models are
+compared. Stopping at gross Sharpe would have put penalised linear models ahead
+of a one-line signal; after costs they are behind it.
 
 ![Sharpe ratio against trading cost, and the break-even cost per model](figures/fig4_cost_erosion.png)
 
@@ -389,7 +387,7 @@ does best on its own is **trend**
 (IC 0.0443 alone, against
 0.0493 for everything together).
 
-**The two columns disagree, and the disagreement is the point.** Look at
+**The two columns disagree.** Look at
 **momentum**: removing it costs almost nothing
 (-0.0020, among the
 smallest in the table), yet on its own it delivers
@@ -767,9 +765,9 @@ mispricing rather than size distortion — without it, the rejection and a broke
 test are indistinguishable. Note that `grs_shrunk` rejects nothing at large *N*,
 exactly as its simulated size predicts.
 
-### 7.6 Three bugs that produced publishable-looking numbers
+### 7.6 Three resampling errors and how they were diagnosed
 
-Recorded because each one nearly became a finding.
+Each of these produced a plausible number rather than an error.
 
 1. *An undemeaned residual pool.* The bootstrap pool's column means were not
    zero, planting roughly 2% a year of alpha. Every test correctly rejected a
@@ -813,9 +811,9 @@ make test     # 78 test functions
 make all      # full pipeline, then regenerates this report
 ```
 
-The tests are not incidental to the result. `tests/test_no_lookahead.py` is what
-makes the numbers above believable, and `tests/test_montecarlo.py` encodes the
-three simulation bugs of §7.6 so they cannot come back.
+`tests/test_no_lookahead.py` checks the point-in-time and embargo guarantees
+the results above depend on; `tests/test_montecarlo.py` encodes the three
+simulation bugs of §7.6 as regression tests.
 
 Raw inputs are pinned to immutable commits with SHA-256 digests in
 `data/raw/manifest.json`. This matters because the Fama-French library is

@@ -147,7 +147,9 @@ def test_error_models_have_the_intended_shape():
     assert abs(squared_autocorrelation(gaussian)) < 0.1
 
 
-@pytest.mark.parametrize("error_model", ["gaussian", "student_t", "common_vol", "empirical_wild"])
+@pytest.mark.parametrize(
+    "error_model", ["gaussian", "student_t", "common_vol", "empirical_wild"]
+)
 def test_grs_holds_its_size_at_high_n_over_t(error_model):
     """The finding that reframes Experiment 4.
 

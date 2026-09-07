@@ -15,10 +15,6 @@ critical values calibrated from each cell's own null distribution.
 from __future__ import annotations
 
 import argparse
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import numpy as np
 import pandas as pd
@@ -168,7 +164,8 @@ def main() -> None:
     print("\nempirical size, nominal 5 percent:")
     print(size.to_string(float_format=lambda v: f"{v: .3f}"))
     print("\nworst size distortion per test:")
-    print(pd.DataFrame(worst).set_index("test").to_string(float_format=lambda v: f"{v: .3f}"))
+    summary = pd.DataFrame(worst).set_index("test")
+    print(summary.to_string(float_format=lambda v: f"{v: .3f}"))
 
 
 if __name__ == "__main__":

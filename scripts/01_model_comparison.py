@@ -12,10 +12,6 @@ forecast, and by a Diebold-Mariano test against the best linear model so that
 from __future__ import annotations
 
 import argparse
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pandas as pd
 
@@ -66,7 +62,9 @@ def main() -> None:
     save_table(diagnostics.set_index(["test_year", "model"]), "walkforward_diagnostics")
 
     names = [m.name for m in models]
-    rows = {name: summarise_forecasts(predictions[name], predictions["y"]) for name in names}
+    rows = {
+        name: summarise_forecasts(predictions[name], predictions["y"]) for name in names
+    }
     accuracy = pd.DataFrame(rows).T
     accuracy.index.name = "model"
 
@@ -99,7 +97,7 @@ def main() -> None:
     # ladder answer "did this step help?"; the contrasts against the best
     # linear model answer "did nonlinearity help, once regularisation is held
     # fixed?", which is the question the project actually poses.
-    pairs = [(a, b) for a, b in zip(names[1:], names[:-1])]
+    pairs = [(a, b) for a, b in zip(names[1:], names[:-1], strict=True)]
     for candidate in (best_linear, BENCHMARK, "single-signal"):
         for name in names:
             if candidate and name != candidate and (name, candidate) not in pairs:

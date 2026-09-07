@@ -104,7 +104,9 @@ FF6 = (*FF5, "mom")
 CAPM = ("mktrf",)
 
 
-def factor_alpha(returns: pd.Series, factors: pd.DataFrame, model=FF6, lags: int = 6) -> dict:
+def factor_alpha(
+    returns: pd.Series, factors: pd.DataFrame, model=FF6, lags: int = 6
+) -> dict:
     """Regress a strategy's return on a factor model and report the intercept.
 
     The intercept is the part of average performance the factor model cannot
@@ -112,14 +114,16 @@ def factor_alpha(returns: pd.Series, factors: pd.DataFrame, model=FF6, lags: int
     something, or has rediscovered a premium that is already for sale.
     """
     aligned = pd.concat([returns.rename("y"), factors[list(model)]], axis=1).dropna()
-    fit = ols_newey_west(aligned["y"].to_numpy(), aligned[list(model)].to_numpy(), lags=lags)
+    fit = ols_newey_west(
+        aligned["y"].to_numpy(), aligned[list(model)].to_numpy(), lags=lags
+    )
     return {
         "alpha": float(fit["params"][0]),
         "alpha_tstat": float(fit["tstat"][0]),
         "alpha_pvalue": float(fit["pvalue"][0]),
         "alpha_annual": float(fit["params"][0]) * 12.0,
-        "betas": dict(zip(model, fit["params"][1:])),
-        "beta_tstats": dict(zip(model, fit["tstat"][1:])),
+        "betas": dict(zip(model, fit["params"][1:], strict=True)),
+        "beta_tstats": dict(zip(model, fit["tstat"][1:], strict=True)),
         "r2": fit["r2"],
         "n_obs": fit["n_obs"],
         "model": "+".join(model),

@@ -12,7 +12,13 @@ import pandas as pd
 import pytest
 
 from xsap.config import Config
-from xsap.features import FEATURE_GROUPS, FEATURE_NAMES, build_features, make_target, rank_normalise
+from xsap.features import (
+    FEATURE_GROUPS,
+    FEATURE_NAMES,
+    build_features,
+    make_target,
+    rank_normalise,
+)
 from xsap.metrics import monthly_ic
 from xsap.walkforward import expanding_splits
 

@@ -1,3 +1,7 @@
+# Exact versions used to produce the numbers in reports/RESEARCH_REPORT.md.
+# pyproject.toml carries looser floors for installation; this file pins the
+# environment, since results depend on library versions as well as on data
+# vintage.
 numpy==2.4.4
 pandas==3.0.5
 scipy==1.18.1

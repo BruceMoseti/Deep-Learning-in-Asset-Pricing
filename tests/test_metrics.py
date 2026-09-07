@@ -17,7 +17,9 @@ from xsap.metrics import (
 def paired_series():
     rng = np.random.default_rng(5)
     months = pd.period_range("2000-01", periods=60, freq="M")
-    index = pd.MultiIndex.from_product([months, [f"a{i}" for i in range(50)]], names=["month", "asset"])
+    index = pd.MultiIndex.from_product(
+        [months, [f"a{i}" for i in range(50)]], names=["month", "asset"]
+    )
     y = pd.Series(rng.normal(size=len(index)), index=index)
     return y
 

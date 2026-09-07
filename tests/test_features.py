@@ -216,4 +216,5 @@ def test_assets_without_enough_history_are_excluded(built):
     data, excess = built
     first_predictor_month = data.index.get_level_values("month").min()
     assert first_predictor_month >= excess.index.min() + 59
-    assert data[list(FEATURE_NAMES)].drop(columns=list(FEATURE_GROUPS["static"])).notna().all().all()
+    dynamic = data[list(FEATURE_NAMES)].drop(columns=list(FEATURE_GROUPS["static"]))
+    assert dynamic.notna().all().all()
