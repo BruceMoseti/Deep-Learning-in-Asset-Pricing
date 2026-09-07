@@ -28,13 +28,14 @@ monotonically along the ladder: 0.025 for a single momentum characteristic,
 (\(t = 3.6\) against zero) over 407 out-of-sample months. Taken at face value
 that looks like complexity paying. It does not survive a paired test. Boosting
 beats ridge (IC gap \(+0.018\), \(t = 2.4\); Diebold-Mariano \(t = -4.4\)) but is
-**statistically indistinguishable from lasso** (gap \(+0.007\), \(t = 1.2\),
-\(p = 0.23\); on squared error \(p = 0.93\)), and the neural network is
-significantly *worse* than lasso. Ridge selects a penalty so small it is
-effectively OLS — with 26 predictors and 249,000 observations there is no
-ill-conditioning for shrinkage to fix — so what separates the ends of the ladder
-is Lasso's variable selection, not the nonlinearity layered on top. No single
-adjacent step is significant on its own.
+**statistically indistinguishable from elastic net**, the best linear model
+(gap \(+0.006\), \(t = 1.5\), \(p = 0.14\); on squared error \(p = 0.77\)), and
+the neural network is significantly *worse* than elastic net on squared error
+(\(p = 0.009\)). Ridge selects a penalty so small it is effectively OLS — with 26
+predictors and 249,000 observations there is no ill-conditioning for shrinkage to
+fix — so what separates the ends of the ladder is sparse variable selection, not
+the nonlinearity layered on top. **No single adjacent step in the ladder is
+significant on its own.**
 
 **The accuracy ranking is not the tradability ranking.** Ridge and OLS turn over
 2.3 times the book per month; they break even at about 18 basis points one-way
@@ -45,22 +46,24 @@ turnover before ranking models reverses the ordering.
 
 **The signal is real, and unremarkable in context.** Boosting's long-short
 return carries a six-factor alpha of about 7.0% a year (\(t = 2.83\)) with a
-factor-regression \(R^2\) of only 0.036. Its own \(t\)-statistic of 3.44 clears
+factor-regression \(R^2\) of only 0.036. Its own \(t\)-statistic of 3.43 clears
 the Harvey-Liu-Zhu \(|t| > 3\) hurdle but does **not** survive a Bonferroni
 correction across the 212 published predictors it is measured against — where it
-sits at roughly the 57th percentile.
+sits at roughly the **57th percentile**. Of those 212, 163 are significant
+uncorrected, 159 survive Benjamini-Hochberg, and only 84 survive Bonferroni.
 
 **Experiment 4 reversed its own hypothesis.** The premise was that the
 Gibbons-Ross-Shanken test degrades as \(N/T \to 1\) because it inverts an
 \(N \times N\) covariance matrix. It does not: GRS is exact in finite samples
 under its assumptions for any \(N \le T - K - 1\), and holds its nominal 5% at
 \(N/T = 0.83\) even with heavy tails, a persistent common volatility factor, and
-residuals resampled from the real panel. What does break is the *asymptotic*
-version of the same statistic (rejection rate 5% → 100% as \(N\) goes 10 → 200),
-shrinkage paired with an unadjusted reference distribution (size collapses to
-zero), and the large-\(N\) alternative, whose size rises to 31% under the
+residuals resampled from the real panel — median size 0.053 over the whole grid.
+What does break is the *asymptotic* version of the same statistic (rejection rate
+5% → 100% as \(N\) goes 10 → 200, median size 0.56), shrinkage paired with an
+unadjusted reference distribution (size collapses to zero and the test rejects
+nothing), and the large-\(N\) alternative, whose size reaches 0.25–0.27 under the
 cross-sectional dependence real portfolios actually have — and rises *with*
-\(N\).
+\(N\), which is the opposite of what an asymptotic-in-\(N\) test should do.
 
 **Predictability declines across the sample.** Mean IC by decade is strongest in
 the 1990s and much weaker in the 2010s, for every model. Either these relations
@@ -118,7 +121,7 @@ are used because the primary hosts are not reachable from every network;
 
 ```bash
 pip install -r requirements.txt
-make test        # 70 tests, ~15s -- run this first
+make test        # 96 tests, ~15s -- run this first
 make fast        # end-to-end smoke run, ~15 min, same code path
 make all         # full run, ~90 min on 8 cores
 ```
@@ -139,16 +142,19 @@ src/xsap/
   features.py      point-in-time predictors and cross-sectional transforms
   models.py        the ladder: single signal -> OLS -> penalised -> boosting -> network
   walkforward.py   expanding-window splits with an embargo
-  metrics.py       IC, ICIR, out-of-sample R2, calibration slope, Diebold-Mariano
+  metrics.py       IC, ICIR, out-of-sample R2, calibration slope, paired tests
   portfolio.py     decile long-short, turnover, costs, break-even cost
   inference.py     Newey-West, factor alphas, block bootstrap, GRS, Bonferroni/BH
   montecarlo.py    Experiment 4: six error structures, four tests
   robustness.py    ablations, regimes, subperiods, alternative design choices
-scripts/           00_fetch_data ... 06_figures, one per experiment
-tests/             70 tests; test_no_lookahead.py is the important one
+scripts/           00_fetch_data ... 07_report, one per experiment
+tests/             96 tests; test_no_lookahead.py is the important one
 docs/
   METHODOLOGY.md     every choice, its reason, and what the alternative did
   INTERVIEW_NOTES.md the questions this project has to survive
+reports/
+  RESEARCH_REPORT.md generated from results/, so it cannot drift from a run
+  figures/           13 figures
 ```
 
 ---

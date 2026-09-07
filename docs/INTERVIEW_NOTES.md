@@ -117,20 +117,24 @@ gradient boosting. Read that table and you would conclude nonlinearity pays.
 
 It does not survive a paired test. Both models see the same cross-section every
 month, so I difference their monthly ICs — the common component cancels and the
-test is far tighter than comparing two standard errors:
+test is far tighter than comparing two standard errors
+(`results/exp1_model_comparisons.csv`):
 
 - Boosting versus ridge: IC gap \(+0.018\), \(t = 2.4\); Diebold-Mariano on
   squared error \(t = -4.4\). Significant.
-- Boosting versus **lasso**, the best linear model: gap \(+0.007\),
-  \(t = 1.2\), \(p = 0.23\); on squared error \(p = 0.93\). **Indistinguishable.**
-- The neural network versus lasso: significantly *worse* on squared error
-  (\(p = 0.004\)).
+- Boosting versus **elastic net**, the best linear model: gap \(+0.006\),
+  \(t = 1.5\), \(p = 0.14\); on squared error \(p = 0.77\).
+  **Indistinguishable.**
+- The neural network versus elastic net: significantly *worse* on squared error
+  (\(p = 0.009\)).
+- And no *adjacent* rung of the ladder is significant at all. The only
+  significant adjacent comparison is the neural network losing to boosting.
 
 So almost the whole apparent gain from "complexity" is the sparse
 regularisation in between, not the nonlinearity on top. Ridge selects a penalty
 so small it is effectively OLS — with 26 predictors and 249,000 observations
-there is no ill-conditioning for shrinkage to fix — whereas Lasso's variable
-selection is a real restriction that pays out of sample.
+there is no ill-conditioning for shrinkage to fix — whereas the sparse variable selection in Lasso and
+elastic net is a real restriction that pays out of sample.
 
 And no single adjacent step in the ladder is significant on its own. Only the
 cumulative ridge-to-boosting gap clears conventional significance.
@@ -232,6 +236,27 @@ One subtlety worth raising: the high survival rate among published predictors is
 itself a selection effect — they were published *because* they were significant.
 That is the Harvey-Liu-Zhu argument, and it is a reason to treat 3.0 rather than
 1.96 as the relevant hurdle.
+
+### "Did any group of predictors matter more than the others?"
+
+Yes, and the ablation gave a result I did not expect. I refit the whole
+walk-forward with each predictor group removed, and again with each group
+alone. The trend and drawdown group — distance from the trailing high, max
+drawdown, trailing Sharpe — reaches rank IC 0.044 **on its own**, against 0.049
+for all 26 predictors. The signal is concentrated, not assembled from many weak
+pieces.
+
+The more useful lesson is that the two ablation directions disagree, and only
+computing both keeps you honest. Removing momentum costs almost nothing
+(\(-0.0020\)) — a leave-one-out study alone would call it uninformative. But
+momentum on its own delivers 0.0228, second only to trend. It is *substitutable*,
+not uninformative; the other predictors already span most of what it knows.
+Higher moments is the genuine null case: cheap to remove *and* useless alone.
+
+There is also a cost dimension that importance scores cannot see. Dropping the
+reversal group costs 0.0061 of IC but raises the break-even cost from 32 to 49
+basis points, because reversal is what drives the turnover. A group can be
+informative and still not worth trading.
 
 ### "What surprised you?"
 
