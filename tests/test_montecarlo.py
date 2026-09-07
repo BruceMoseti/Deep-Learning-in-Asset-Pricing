@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
+import textwrap
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -10,6 +15,7 @@ from xsap.montecarlo import (
     Calibration,
     alpha_tests,
     calibrate,
+    cell_seed,
     ledoit_wolf_shrinkage,
     pesaran_yamagata_pvalue,
     simulate_panel,
@@ -250,6 +256,50 @@ def test_tests_have_power_against_real_mispricing():
     for name, pvalues in collected.items():
         power = float(np.mean(np.asarray(pvalues) < 0.05))
         assert power > 0.5, f"{name} power was {power:.3f}"
+
+
+def test_the_study_is_reproducible_across_interpreter_processes():
+    """Same seed must give the same numbers in a fresh process.
+
+    An earlier version derived each cell's seed from ``hash(error_model)``.
+    String hashing is salted per process, so every number in Experiment 4
+    changed between runs while the rest of the pipeline reproduced exactly.
+    Running twice under different ``PYTHONHASHSEED`` values is the only way to
+    catch that, since within a single process ``hash`` is stable.
+    """
+    program = textwrap.dedent(
+        """
+        from xsap.montecarlo import ERROR_MODELS, cell_seed
+        print([
+            cell_seed(20240601, t, n, m)
+            for t in (120, 360)
+            for n in (10, 300)
+            for m in ERROR_MODELS
+        ])
+        """
+    )
+    outputs = []
+    for hash_seed in ("0", "1", "999983"):
+        result = subprocess.run(
+            [sys.executable, "-c", program],
+            capture_output=True,
+            text=True,
+            env={**os.environ, "PYTHONHASHSEED": hash_seed},
+            check=True,
+        )
+        outputs.append(result.stdout.strip())
+    assert len(set(outputs)) == 1, "cell seeds depend on the interpreter hash seed"
+
+
+def test_every_grid_cell_gets_a_distinct_seed():
+    """Reusing a seed across cells would correlate their sampling error."""
+    seeds = [
+        cell_seed(20240601, n_obs, n_assets, model)
+        for n_obs in (120, 240, 360)
+        for n_assets in (10, 25, 50, 100, 200, 300)
+        for model in ERROR_MODELS
+    ]
+    assert len(set(seeds)) == len(seeds)
 
 
 def test_pesaran_yamagata_matches_a_direct_computation():
