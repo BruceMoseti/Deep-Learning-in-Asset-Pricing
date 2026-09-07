@@ -8,7 +8,6 @@ numbers that were actually produced by a run rather than transcribed by hand.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pandas as pd
 

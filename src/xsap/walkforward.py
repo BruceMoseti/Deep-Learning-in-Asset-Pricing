@@ -31,7 +31,6 @@ import copy
 import time
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
 from xsap.config import Config

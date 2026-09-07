@@ -17,8 +17,6 @@ import pandas as pd
 
 from xsap.artifacts import factors, load_series, read_json
 from xsap.config import FIGURES, RESULTS, Config, ensure_dirs
-from xsap.inference import mean_tstat
-from xsap.metrics import monthly_ic
 
 plt.rcParams.update(
     {
